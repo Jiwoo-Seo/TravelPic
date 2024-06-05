@@ -3,13 +3,14 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
 }
 
+
 android {
     namespace = "com.example.travelpic"
     compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.travelpic"
-        minSdk = 33
+        minSdk = 31
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -63,6 +64,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.exifinterface)
+    implementation(libs.naver.map.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -70,4 +72,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("com.naver.maps:map-sdk:3.18.0")
+    implementation("io.github.fornewid:naver-map-location:21.0.2")
 }
+

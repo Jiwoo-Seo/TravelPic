@@ -30,7 +30,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.naver.maps.map.NaverMap
+import com.naver.maps.map.compose.ExperimentalNaverMapApi
+import com.naver.maps.map.compose.NaverMap
 
+@OptIn(ExperimentalNaverMapApi::class)
 @Composable
 fun Screen2(navController: NavController) {
     val backgroundImage: Painter = painterResource(id = R.drawable.background_image) // 배경 이미지 리소스
@@ -55,6 +59,10 @@ fun Screen2(navController: NavController) {
                     .background(Color.White)
             ) {
                 // 여기에 지도
+                NaverMap(
+                    modifier = Modifier.fillMaxSize()
+                )
+
             }
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -88,3 +96,4 @@ fun ActionButton(icon: ImageVector, text: String, onClick: () -> Unit = {}) {
         Text(text = text, fontSize = 12.sp)
     }
 }
+
