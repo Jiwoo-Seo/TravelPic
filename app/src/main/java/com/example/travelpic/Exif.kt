@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.example.travelpic.data.Picture
 import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -75,4 +76,13 @@ fun getExifInfo(context: Context, uri: Uri): String {
     } catch (e: Exception) {
         "Failed to load EXIF data"
     }
+}
+//정보뽑고 사진 데이터 만들기
+fun parseExifInfo(exifInfo: String): Picture {
+    val lines = exifInfo.split("\n")
+    val date = lines[0].substringAfter("Date: ").trim()
+    val model = lines[1].substringAfter("Model: ").trim()
+    val latitude = lines[2].substringAfter("Latitude: ").trim()
+    val longitude = lines[3].substringAfter("Longitude: ").trim()
+    return Picture(date, model, latitude, longitude)
 }
