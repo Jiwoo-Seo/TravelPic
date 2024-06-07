@@ -20,6 +20,10 @@ import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,15 +33,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.travelpic.data.AlbumViewModel
 
 @Composable
-fun Screen2(navController: NavController) {
+fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
+    val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
+
     val backgroundImage: Painter = painterResource(id = R.drawable.background_image) // 배경 이미지 리소스
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-    ) {
+    )
         Image(
             painter = backgroundImage,
             contentDescription = null,
@@ -48,6 +57,8 @@ fun Screen2(navController: NavController) {
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxSize()
         ) {
+
+            Text(text = navViewModel.albumname)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -73,7 +84,7 @@ fun Screen2(navController: NavController) {
             }
         }
     }
-}
+
 
 @Composable
 fun ActionButton(icon: ImageVector, text: String, onClick: () -> Unit = {}) {
