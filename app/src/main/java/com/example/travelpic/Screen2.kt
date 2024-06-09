@@ -35,8 +35,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.geometry.LatLngBounds
+import com.naver.maps.map.NaverMap
+import com.naver.maps.map.compose.ExperimentalNaverMapApi
+import com.naver.maps.map.compose.LocationTrackingMode
+import com.naver.maps.map.compose.MapProperties
+import com.naver.maps.map.compose.MapUiSettings
+import com.naver.maps.map.compose.NaverMap
+import com.naver.maps.map.compose.rememberFusedLocationSource
+import com.naver.maps.map.overlay.GroundOverlay
+import com.naver.maps.map.overlay.OverlayImage
 import com.example.travelpic.data.AlbumViewModel
 
+@OptIn(ExperimentalNaverMapApi::class)
 @Composable
 fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
@@ -66,6 +78,9 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                     .background(Color.White)
             ) {
                 // 여기에 지도
+                NaverMap(
+                    modifier = Modifier.fillMaxSize() ,
+                )
             }
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -99,3 +114,4 @@ fun ActionButton(icon: ImageVector, text: String, onClick: () -> Unit = {}) {
         Text(text = text, fontSize = 12.sp)
     }
 }
+

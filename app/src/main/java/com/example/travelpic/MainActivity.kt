@@ -31,6 +31,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.database.database
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

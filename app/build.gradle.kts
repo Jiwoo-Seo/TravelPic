@@ -5,6 +5,7 @@ plugins {
     kotlin("kapt")
 }
 
+
 android {
     namespace = "com.example.travelpic"
     compileSdk = 34
@@ -65,6 +66,8 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.exifinterface)
+
+    implementation(libs.naver.map.compose)
     implementation(libs.firebase.database)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.room.ktx)
@@ -78,6 +81,11 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("com.naver.maps:map-sdk:3.18.0")
+    implementation("io.github.fornewid:naver-map-location:21.0.2")
+}
+
+=======
 }
 kapt{
     correctErrorTypes=true
