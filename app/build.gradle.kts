@@ -61,7 +61,7 @@ dependencies {
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
+    //implementation(libs.androidx.material)
     implementation(libs.ui.tooling.preview)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.material3.android)
     //implementation(libs.androidx.room.compiler)
     //annotationProcessor(libs.androidx.room.compiler)
     kapt(libs.androidx.room.compiler)
@@ -85,8 +86,8 @@ dependencies {
     implementation("io.github.fornewid:naver-map-location:21.0.2")
 }
 
-=======
-}
+
+
 kapt{
     correctErrorTypes=true
 }
