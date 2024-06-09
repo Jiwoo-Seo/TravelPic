@@ -30,9 +30,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.geometry.LatLngBounds
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
+import com.naver.maps.map.compose.LocationTrackingMode
+import com.naver.maps.map.compose.MapProperties
+import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.NaverMap
+import com.naver.maps.map.compose.rememberFusedLocationSource
+import com.naver.maps.map.overlay.GroundOverlay
+import com.naver.maps.map.overlay.OverlayImage
 
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
@@ -60,9 +68,8 @@ fun Screen2(navController: NavController) {
             ) {
                 // 여기에 지도
                 NaverMap(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize() ,
                 )
-
             }
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
