@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    id("com.google.gms.google-services")
+    kotlin("kapt")
 }
 
 
@@ -64,7 +66,14 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.exifinterface)
+
     implementation(libs.naver.map.compose)
+    implementation(libs.firebase.database)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.room.ktx)
+    //implementation(libs.androidx.room.compiler)
+    //annotationProcessor(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -76,3 +85,8 @@ dependencies {
     implementation("io.github.fornewid:naver-map-location:21.0.2")
 }
 
+=======
+}
+kapt{
+    correctErrorTypes=true
+}
