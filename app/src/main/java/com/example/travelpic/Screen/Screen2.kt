@@ -1,4 +1,4 @@
-package com.example.travelpic
+package com.example.travelpic.Screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAddAlt
+import androidx.compose.material.icons.filled.PhotoAlbum
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Icon
@@ -25,22 +26,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.travelpic.LocalNavGraphViewModelStoreOwner
+import com.example.travelpic.R
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
 import com.naver.maps.map.compose.NaverMap
 import com.example.travelpic.data.AlbumViewModel
+import com.example.travelpic.navViewmodel
 
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
 fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
 
-    val context = LocalContext.current
     val backgroundImage: Painter = painterResource(id = R.drawable.background_image) // 배경 이미지 리소스
 
     Box(
@@ -79,12 +81,12 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                     .padding(vertical = 8.dp)
             ) {
                 ActionButton(icon = Icons.Default.UploadFile, text = "사진 업로드"){
-
                     navController.navigate("screen3")
                 }
-                ActionButton(icon = Icons.Default.Place, text = "위치 추가")
-                //ActionButton(icon = Icons.Default.PhotoAlbum, text = "하이라이트 앨범")
-                highlightAlbumMenu(navController,albumViewModel);
+                ActionButton(icon = Icons.Default.Place, text = "위치태그 추가"){
+                    navController.navigate(("AddLocationTag"))
+                }
+                ActionButton(icon = Icons.Default.PhotoAlbum, text = "하이라이트 앨범")
                 ActionButton(icon = Icons.Default.PersonAddAlt, text = "친구 초대")
             }
         }

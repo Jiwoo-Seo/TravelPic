@@ -14,14 +14,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import com.example.travelpic.Screen.AddLocationTag
+import com.example.travelpic.Screen.Screen1
+import com.example.travelpic.Screen.Screen2
+import com.example.travelpic.Screen.Screen3
 import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.data.AlbumViewModelFactory
 import com.example.travelpic.data.FirebaseAlbumRepository
+import com.example.travelpic.navViewmodel
 import com.example.travelpic.roomDB.AlbumCodeDatabase
 import com.example.travelpic.ui.theme.TravelPicTheme
 import com.example.travelpic.userAlbumViewModel.UserAlbumRepository
@@ -60,7 +63,8 @@ val LocalNavGraphViewModelStoreOwner =
 fun TravelPicNavigator() {
     val context = LocalContext.current
     val table = Firebase.database.getReference("AlbumList")
-    val albumViewModel: AlbumViewModel = viewModel(factory = AlbumViewModelFactory(FirebaseAlbumRepository(table)))
+    val albumViewModel: AlbumViewModel = viewModel(factory = AlbumViewModelFactory(FirebaseAlbumRepository(table))
+    )
     //val userAlbumRepository = UserAlbumRepository(UserAlbumDatabase.getDatabase(context).userAlbumDao())
     //val userAlbumViewModel: UserAlbumViewModel = viewModel(factory = UserAlbumViewModelFactory(userAlbumRepository))
     val albumcodeDB = AlbumCodeDatabase.getItemDatabase(context)
@@ -80,9 +84,7 @@ fun TravelPicNavigator() {
             composable("screen1") { Screen1(navController, albumViewModel, userAlbumViewModel) }
             composable("screen2") { Screen2(navController, albumViewModel) }
             composable("screen3") { Screen3(navController) }
-            composable("screen4") { Screen4(navController, albumViewModel) }
-            composable("screen5") { Screen5(navController, albumViewModel) }
-
+            composable("AddLocationTag") { AddLocationTag(navController,albumViewModel, userAlbumViewModel) }
         }
     }
 

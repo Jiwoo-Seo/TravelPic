@@ -1,4 +1,4 @@
-package com.example.travelpic
+package com.example.travelpic.Screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.travelpic.R
 
 @Composable
 fun Screen3(navController: NavController) {
