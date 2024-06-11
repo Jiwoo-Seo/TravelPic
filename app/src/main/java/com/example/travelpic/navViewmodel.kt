@@ -1,4 +1,4 @@
-package  
+package com.example.travelpic
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
