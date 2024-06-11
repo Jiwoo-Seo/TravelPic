@@ -1,4 +1,4 @@
-package com.example.travelpic
+package com.example.travelpic.Screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,10 +20,6 @@ import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,18 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.naver.maps.geometry.LatLng
-import com.naver.maps.geometry.LatLngBounds
-import com.naver.maps.map.NaverMap
+import com.example.travelpic.LocalNavGraphViewModelStoreOwner
+import com.example.travelpic.R
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
-import com.naver.maps.map.compose.LocationTrackingMode
-import com.naver.maps.map.compose.MapProperties
-import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.NaverMap
-import com.naver.maps.map.compose.rememberFusedLocationSource
-import com.naver.maps.map.overlay.GroundOverlay
-import com.naver.maps.map.overlay.OverlayImage
 import com.example.travelpic.data.AlbumViewModel
+import com.example.travelpic.navViewmodel
 
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
@@ -93,7 +83,9 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                 ActionButton(icon = Icons.Default.UploadFile, text = "사진 업로드"){
                     navController.navigate("screen3")
                 }
-                ActionButton(icon = Icons.Default.Place, text = "위치 추가")
+                ActionButton(icon = Icons.Default.Place, text = "위치태그 추가"){
+                    navController.navigate(("AddLocationTag"))
+                }
                 ActionButton(icon = Icons.Default.PhotoAlbum, text = "하이라이트 앨범")
                 ActionButton(icon = Icons.Default.PersonAddAlt, text = "친구 초대")
             }
