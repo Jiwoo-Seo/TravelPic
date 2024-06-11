@@ -33,8 +33,7 @@ fun MyAlbumList(albums: List<AlbumCode>, userAlbumViewModel: UserAlbumViewModel,
     LazyColumn{
         items(albums) { album ->
             //Text(album.name, modifier = Modifier.padding(8.dp))
-            navViewModel.setAlbumInfo(album.code,album.name)
-            AlbumCard(album,userAlbumViewModel,navigate)
+            AlbumCard(album,userAlbumViewModel,navigate,navViewModel)
         }
     }
 
@@ -42,7 +41,12 @@ fun MyAlbumList(albums: List<AlbumCode>, userAlbumViewModel: UserAlbumViewModel,
 }
 
 @Composable
-fun AlbumCard(albumCode: AlbumCode, userAlbumViewModel:UserAlbumViewModel, nav: NavController) {
+fun AlbumCard(
+    albumCode: AlbumCode,
+    userAlbumViewModel: UserAlbumViewModel,
+    nav: NavController,
+    navViewModel: navViewmodel
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -52,7 +56,10 @@ fun AlbumCard(albumCode: AlbumCode, userAlbumViewModel:UserAlbumViewModel, nav: 
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth()
-                .clickable {  nav.navigate("screen2") }
+                .clickable {
+
+                    navViewModel.setAlbumInfo(albumCode.code, albumCode.name)
+                    nav.navigate("screen2") }
         ) {
             Text(modifier = Modifier.padding(5.dp), text = albumCode.name)
             Icon(imageVector = Icons.Default.Settings, contentDescription = null, modifier = Modifier.padding(5.dp).clickable {

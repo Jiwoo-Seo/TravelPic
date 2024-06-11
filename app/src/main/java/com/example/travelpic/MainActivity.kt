@@ -60,8 +60,7 @@ val LocalNavGraphViewModelStoreOwner =
 fun TravelPicNavigator() {
     val context = LocalContext.current
     val table = Firebase.database.getReference("AlbumList")
-    val albumViewModel: AlbumViewModel = viewModel(factory = AlbumViewModelFactory(FirebaseAlbumRepository(table))
-    )
+    val albumViewModel: AlbumViewModel = viewModel(factory = AlbumViewModelFactory(FirebaseAlbumRepository(table)))
     //val userAlbumRepository = UserAlbumRepository(UserAlbumDatabase.getDatabase(context).userAlbumDao())
     //val userAlbumViewModel: UserAlbumViewModel = viewModel(factory = UserAlbumViewModelFactory(userAlbumRepository))
     val albumcodeDB = AlbumCodeDatabase.getItemDatabase(context)
@@ -81,6 +80,9 @@ fun TravelPicNavigator() {
             composable("screen1") { Screen1(navController, albumViewModel, userAlbumViewModel) }
             composable("screen2") { Screen2(navController, albumViewModel) }
             composable("screen3") { Screen3(navController) }
+            composable("screen4") { Screen4(navController, albumViewModel) }
+            composable("screen5") { Screen5(navController, albumViewModel) }
+
         }
     }
 

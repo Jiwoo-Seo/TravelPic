@@ -3,8 +3,11 @@ package com.example.travelpic.data
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class AlbumViewModelFactory(private val repository: FirebaseAlbumRepository): ViewModelProvider.Factory{
@@ -20,7 +23,8 @@ class AlbumViewModel(private val repository: FirebaseAlbumRepository) : ViewMode
     private var _pictures = MutableStateFlow<List<Picture>>(emptyList())
     val pictures = _pictures.asStateFlow()//StateFlow는 UI를 갱신할때 사용
     //val albums: LiveData<List<Album>> get() = _albums
-
+    val uniqueLocationTags: Flow<List<String>> = _pictures
+        .map { pictures -> pictures.map { it.LocationTag }.toSet().toList() }
     init {
         fetchAlbums()
     }

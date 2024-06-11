@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,9 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.travelpic.data.AlbumViewModel
 
 @Composable
-fun highlightAlbumMenu(onClick1 :() -> Unit,onClick2 :() -> Unit) {
+fun highlightAlbumMenu(navController: NavController, albumViewModel: AlbumViewModel) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -53,14 +55,15 @@ fun highlightAlbumMenu(onClick1 :() -> Unit,onClick2 :() -> Unit) {
                     Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "하이라이트 앨범 만들기") }
             }, onClick = {
                 expanded = false
-                onClick1})
-            Divider()
+                navController.navigate("screen4")
+            })
+            HorizontalDivider()
             DropdownMenuItem({
                 Row(horizontalArrangement = Arrangement.SpaceBetween){
                     Text("하이라이트 앨범 보기", modifier = Modifier.weight(1f))
                     Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "하이라이트 앨범 만들기")}
             }, onClick = { expanded = false
-                onClick2})
+                navController.navigate("screen5")})
         }
     }
 }

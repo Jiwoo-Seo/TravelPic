@@ -59,7 +59,7 @@ fun Screen3(navController: NavController) {
                     IconButton(onClick = { /* TODO */ }) {
                         Icon(imageVector = Icons.Filled.Assignment, contentDescription = null, tint = Color.White)
                     }
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = {  }) {
                         Icon(imageVector = Icons.Filled.Favorite, contentDescription = null, tint = Color.White)
                     }
                 }
