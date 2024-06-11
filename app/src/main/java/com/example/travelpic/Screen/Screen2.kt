@@ -3,23 +3,15 @@ package com.example.travelpic.Screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAddAlt
 import androidx.compose.material.icons.filled.PhotoAlbum
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,13 +34,13 @@ import com.example.travelpic.navViewmodel
 @Composable
 fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
-
     val backgroundImage: Painter = painterResource(id = R.drawable.background_image) // 배경 이미지 리소스
+    var showLocationDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-    )
+    ) {
         Image(
             painter = backgroundImage,
             contentDescription = null,
@@ -59,17 +51,15 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxSize()
         ) {
-
-            Text(text = navViewModel.albumname)
+            Text(text = navViewModel.albumname, modifier = Modifier.padding(16.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                     .background(Color.White)
             ) {
-                // 여기에 지도
                 NaverMap(
-                    modifier = Modifier.fillMaxSize() ,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
             Row(
@@ -80,11 +70,11 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                     .background(Color(0x80FFFFFF), RoundedCornerShape(16.dp))
                     .padding(vertical = 8.dp)
             ) {
-                ActionButton(icon = Icons.Default.UploadFile, text = "사진 업로드"){
+                ActionButton(icon = Icons.Default.UploadFile, text = "사진 업로드") {
                     navController.navigate("screen3")
                 }
-                ActionButton(icon = Icons.Default.Place, text = "위치태그 추가"){
-                    navController.navigate(("AddLocationTag"))
+                ActionButton(icon = Icons.Default.Place, text = "위치태그") {
+                    showLocationDialog = true
                 }
                 ActionButton(icon = Icons.Default.PhotoAlbum, text = "하이라이트 앨범")
                 ActionButton(icon = Icons.Default.PersonAddAlt, text = "친구 초대")
@@ -92,6 +82,45 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
         }
     }
 
+    if (showLocationDialog) {
+        AlertDialog(
+            onDismissRequest = { showLocationDialog = false },
+            title = { Text("위치태그 옵션") },
+            text = {
+                Column {
+                    Button(
+                        onClick = {
+                            navController.navigate("AddLocationTag")
+                            showLocationDialog = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Text(text = "위치태그 추가")
+                    }
+                    Button(
+                        onClick = {
+                            // 사진 분류 로직 추가
+                            showLocationDialog = false
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Text(text = "사진 분류")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                Button(onClick = { showLocationDialog = false }) {
+                    Text("닫기")
+                }
+            }
+        )
+    }
+}
 
 @Composable
 fun ActionButton(icon: ImageVector, text: String, onClick: () -> Unit = {}) {
@@ -106,4 +135,3 @@ fun ActionButton(icon: ImageVector, text: String, onClick: () -> Unit = {}) {
         Text(text = text, fontSize = 12.sp)
     }
 }
-
