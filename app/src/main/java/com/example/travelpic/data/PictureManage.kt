@@ -1,6 +1,7 @@
 package com.example.travelpic.data
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,23 +16,45 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import com.example.travelpic.getExifInfo
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.core.Context
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
+import kotlinx.coroutines.tasks.await
 
 //파이어베이스에 앨범에 사진 저장
-fun savePictureToFirebaseDatabase(@SuppressLint("RestrictedApi") context: Context, albumCode: String, picture: Picture) {
-    val database = FirebaseDatabase.getInstance()
-    val albumRef = database.getReference("albums").child(albumCode)
-    val pictureName = picture.Date + picture.Model + picture.Latitude + picture.Longitude
-    val newPictureRef = albumRef.child(pictureName).push()
-    newPictureRef.setValue(picture)
-        .addOnSuccessListener {
-            //Toast.makeText(context, "Picture saved successfully", Toast.LENGTH_SHORT).show()
+
+@Composable
+fun uploadImageToFirebase(uri: Uri, albumCode: String): String? {
+    val storageReference = Firebase.storage.reference
+    val databaseReference: DatabaseReference = Firebase.database.reference
+    val context = LocalContext.current
+    val imageReference = storageReference.child("images/${albumCode}/${uri.lastPathSegment}")
+    return try {
+        // Upload image to Firebase Storage
+        imageReference.putFile(uri)
+
+        // Get the download URL
+        val downloadUrl = imageReference.downloadUrl.toString().toUri()
+
+        // Save the download URL to Firebase Realtime Database
+        val key = databaseReference.child("AlbumList/${albumCode}").push().key
+        key?.let {
+            getExifInfo(context, downloadUrl)
+            databaseReference.child("AlbumList/${albumCode}").child(it).setValue(downloadUrl.toString())
         }
-        .addOnFailureListener {
-            //Toast.makeText(context, "Error saving picture", Toast.LENGTH_SHORT).show()
-        }
+
+        downloadUrl.toString()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }
 
 //앨범리스트
