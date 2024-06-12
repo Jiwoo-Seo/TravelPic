@@ -113,7 +113,8 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
             confirmButton = {
                 Button(onClick = {
                     val charset = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-                    val newAlbum = Album(List(10) { charset.random() }.joinToString(""), albumName)
+//                    val newAlbum = Album(List(10) { charset.random() }.joinToString(""), albumName)
+                    val newAlbum = Album(createInviteCode(), albumName)
                     val newAlbumCode = AlbumCode(newAlbum.code, newAlbum.name)
                     albumViewModel.addAlbum(newAlbum)
                     userAlbumViewModel.addAlbumCode(newAlbumCode)
@@ -164,6 +165,6 @@ fun createInviteCode():String{
 
 // 초대 코드 매치 함수
 // Firebase 연동 예정
-fun matchInviteCode(code:String){
-
+fun matchInviteCode(code:String):Boolean{
+    
 }
