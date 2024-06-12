@@ -17,7 +17,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,7 +56,7 @@ fun highlightAlbumMenu(navController: NavController, albumViewModel: AlbumViewMo
                 expanded = false
                 navController.navigate("screen4")
             })
-            HorizontalDivider()
+            Divider()
             DropdownMenuItem({
                 Row(horizontalArrangement = Arrangement.SpaceBetween){
                     Text("하이라이트 앨범 보기", modifier = Modifier.weight(1f))

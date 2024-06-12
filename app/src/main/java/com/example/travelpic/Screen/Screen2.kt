@@ -35,6 +35,7 @@ import com.naver.maps.map.compose.ExperimentalNaverMapApi
 import com.naver.maps.map.compose.NaverMap
 import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.data.uploadImageToFirebase
+import com.example.travelpic.highlightAlbumMenu
 import com.example.travelpic.navViewmodel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -121,7 +122,8 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                 ActionButton(icon = Icons.Default.Place, text = "위치태그") {
                     showLocationDialog = true
                 }
-                ActionButton(icon = Icons.Default.PhotoAlbum, text = "하이라이트 앨범")
+                //ActionButton(icon = Icons.Default.PhotoAlbum, text = "하이라이트 앨범")
+                highlightAlbumMenu(navController,albumViewModel);
                 ActionButton(icon = Icons.Default.PersonAddAlt, text = "친구 초대")
             }
         }

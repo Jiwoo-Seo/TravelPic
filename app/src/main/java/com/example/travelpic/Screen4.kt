@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.ArrowCircleRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -85,7 +84,7 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
                 steps = maxLike,
                 modifier = Modifier.width(350.dp)
             )
-            HorizontalDivider(modifier = Modifier.padding(5.dp))
+            Divider(modifier = Modifier.padding(5.dp))
             Text(text = "최대 사진 개수 : ${slider_PictureCount}개", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
             Slider(
                 value = slider_PictureCount.toFloat(),
@@ -94,7 +93,7 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
                 steps = pictures.value.size,
                 modifier = Modifier.width(350.dp)
             )
-            HorizontalDivider(modifier = Modifier.padding(5.dp))
+            Divider(modifier = Modifier.padding(5.dp))
             Text(text = "위치 태그", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
             Column(
                 verticalArrangement = Arrangement.SpaceBetween,

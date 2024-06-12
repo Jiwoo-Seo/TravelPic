@@ -166,5 +166,5 @@ fun createInviteCode():String{
 // 초대 코드 매치 함수
 // Firebase 연동 예정
 fun matchInviteCode(code:String):Boolean{
-    
+    return true
 }
