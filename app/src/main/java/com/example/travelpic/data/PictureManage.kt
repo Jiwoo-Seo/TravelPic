@@ -30,11 +30,11 @@ import kotlinx.coroutines.tasks.await
 
 //파이어베이스에 앨범에 사진 저장
 
-@Composable
-fun uploadImageToFirebase(uri: Uri, albumCode: String): String? {
+
+fun uploadImageToFirebase(uri: Uri, albumCode: String,context: android.content.Context): String? {
     val storageReference = Firebase.storage.reference
     val databaseReference: DatabaseReference = Firebase.database.reference
-    val context = LocalContext.current
+//    val context = LocalContext.current
     val imageReference = storageReference.child("images/${albumCode}/${uri.lastPathSegment}")
     return try {
         // Upload image to Firebase Storage
