@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,10 +13,14 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.travelpic.LocalNavGraphViewModelStoreOwner
 import com.example.travelpic.R
 import com.example.travelpic.data.Album
 import com.example.travelpic.data.AlbumViewModel
+import com.example.travelpic.navViewmodel
+import com.example.travelpic.newAlbum
 import com.example.travelpic.roomDB.AlbumCode
 import com.example.travelpic.userAlbumViewModel.MyAlbumList
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel
@@ -28,7 +33,9 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
     var showNewButtons by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var albumName by remember { mutableStateOf("") }
+    val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
 
+    var expanded by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -55,6 +62,7 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
                     .align(Alignment.CenterHorizontally)
                     .padding(16.dp)
             ) {
+/*
                 if (showNewButtons) {
                     Button(
                         onClick = {
@@ -77,11 +85,12 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
                     ) {
                         Text(text = "앨범 참여하기")
                     }
-                }
+                }*/
 
                 Button(
                     onClick = {
-                        showNewButtons = !showNewButtons
+                        //showNewButtons = !showNewButtons
+                        expanded = true
                     },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -90,6 +99,29 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(text = "새로운 여정")
+                }
+
+                DropdownMenu(
+                    modifier = Modifier.width(180.dp),
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DropdownMenuItem({
+                        Row(horizontalArrangement = Arrangement.SpaceBetween){
+                            Text("앨범 생성하기", modifier = Modifier.weight(1f))
+                            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "앨범 생성하기") }
+                    }, onClick = {
+                        expanded = false
+                        showDialog = true
+                        })
+                    Divider(modifier = Modifier.padding(2.dp))
+                    DropdownMenuItem({
+                        Row(horizontalArrangement = Arrangement.SpaceBetween){
+                            Text("앨범 참여하기", modifier = Modifier.weight(1f))
+                            Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "앨범 참여하기")}
+                    }, onClick = {
+                        expanded = false
+                        })
                 }
             }
         }
@@ -118,6 +150,8 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
                     val newAlbumCode = AlbumCode(newAlbum.code, newAlbum.name)
                     albumViewModel.addAlbum(newAlbum)
                     userAlbumViewModel.addAlbumCode(newAlbumCode)
+                    navViewModel.albumname = albumName
+                    navViewModel.albumcode = newAlbum.code
                     navController.navigate("screen2")
                     showDialog = false
                 }) {
