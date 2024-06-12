@@ -71,7 +71,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.room.ktx)
     implementation(libs.accompanist.permissions)
-    implementation(libs.androidx.material3.android)
     implementation(libs.firebase.storage.ktx)
     //implementation(libs.androidx.room.compiler)
     //annotationProcessor(libs.androidx.room.compiler)

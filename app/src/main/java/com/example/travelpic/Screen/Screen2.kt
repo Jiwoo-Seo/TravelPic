@@ -108,7 +108,8 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                         selectImageLauncher.launch("image/*")
                         selectedImageUri?.let{uri ->
                             scope.launch { 
-                                uploadImageToFirebase(uri = uri, albumCode = "",context)
+                                uploadImageToFirebase(uri = uri,
+                                    albumCode = navViewModel.albumcode,context)
                             }
                         }
                     }else{
