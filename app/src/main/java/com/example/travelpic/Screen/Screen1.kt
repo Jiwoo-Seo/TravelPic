@@ -19,6 +19,7 @@ import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.roomDB.AlbumCode
 import com.example.travelpic.userAlbumViewModel.MyAlbumList
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel
+import java.util.Random
 
 @Composable
 fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAlbumViewModel: UserAlbumViewModel) {
@@ -112,7 +113,8 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
             confirmButton = {
                 Button(onClick = {
                     val charset = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-                    val newAlbum = Album(List(10) { charset.random() }.joinToString(""), albumName)
+//                    val newAlbum = Album(List(10) { charset.random() }.joinToString(""), albumName)
+                    val newAlbum = Album(createInviteCode(), albumName)
                     val newAlbumCode = AlbumCode(newAlbum.code, newAlbum.name)
                     albumViewModel.addAlbum(newAlbum)
                     userAlbumViewModel.addAlbumCode(newAlbumCode)
@@ -129,4 +131,40 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
             }
         )
     }
+}
+
+// 초대 코드 생성
+// 현재 abc1234567 형식
+fun createInviteCode():String{
+    val length=10
+    val random= Random()
+    // source
+    val chars1="abcdefghijklmnopqrstuvwxyz"
+    val chars2="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    val nums="0123456789"
+    // alphabet length
+    val alph=3
+
+    // code 생성
+    val str=StringBuilder().apply{
+        for(i in 0 until alph){
+            val index1=random.nextInt(chars1.length)
+            val index2=random.nextInt(chars2.length)
+            append(if(random.nextBoolean()) chars1[index1] else chars2[index2])
+        }
+        for(i in alph until length){
+            val index=random.nextInt(nums.length)
+            append(nums[index])
+        }
+    }.toString()
+
+    // 무결성 확인
+
+    return str
+}
+
+// 초대 코드 매치 함수
+// Firebase 연동 예정
+fun matchInviteCode(code:String):Boolean{
+    
 }
