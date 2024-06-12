@@ -70,6 +70,9 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.material3.android)
+    implementation(libs.firebase.storage.ktx)
     //implementation(libs.androidx.room.compiler)
     //annotationProcessor(libs.androidx.room.compiler)
     kapt(libs.androidx.room.compiler)
@@ -91,6 +94,9 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
 
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    kapt("com.github.bumptech.glide:compiler:4.16.0")
 }
 
 kapt{
