@@ -61,30 +61,6 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
                     .align(Alignment.CenterHorizontally)
                     .padding(16.dp)
             ) {
-/*
-                if (showNewButtons) {
-                    Button(
-                        onClick = {
-                            showDialog = true
-                        },
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(16.dp)
-                    ) {
-                        Text(text = "앨범 생성하기")
-                    }
-
-                    Button(
-                        onClick = {
-                            // 앨범 참여하기 로직 추가
-                        },
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(16.dp)
-                    ) {
-                        Text(text = "앨범 참여하기")
-                    }
-                }*/
 
                 Button(
                     onClick = {
@@ -120,6 +96,7 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
                             Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "앨범 참여하기")}
                     }, onClick = {
                         expanded = false
+                        
                         })
                 }
             }
