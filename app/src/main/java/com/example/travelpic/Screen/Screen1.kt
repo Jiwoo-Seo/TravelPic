@@ -20,7 +20,6 @@ import com.example.travelpic.R
 import com.example.travelpic.data.Album
 import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.navViewmodel
-import com.example.travelpic.newAlbum
 import com.example.travelpic.roomDB.AlbumCode
 import com.example.travelpic.userAlbumViewModel.MyAlbumList
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel

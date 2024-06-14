@@ -7,7 +7,7 @@ data class Picture(val Date: String,
                    var LikeCount: Int = 0,
                    val LocationTag:String = "",
                    val Memo:String = "",
-                   val imageUrl: String = "")
+                   var imageUrl: String = "")
 {
     constructor() : this("-", "-", "-", "-")
 }
