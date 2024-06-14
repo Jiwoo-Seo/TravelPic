@@ -69,10 +69,10 @@ fun Screen3fix() {
     }
 
     if (showNoteDialog) {
-        NoteDialog(onDismiss = { showNoteDialog = false }, onSave = { note ->
-            database.child("notes").push().setValue(note)
-            notes.add(note)
-        })
+//        NoteDialog(onDismiss = { showNoteDialog = false }, onSave = { note ->
+//            database.child("notes").push().setValue(note)
+//            notes.add(note)
+//        })
     }
 
     Column(
@@ -155,9 +155,9 @@ fun NoteItem(note: String, onDelete: () -> Unit) {
 }
 
 @Composable
-fun NoteDialog(onDismiss: () -> Unit, onSave: (String) -> Unit) {
+fun NoteDialog(memo:String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
     var noteText by remember { mutableStateOf("") }
-
+    noteText = memo
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(8.dp),

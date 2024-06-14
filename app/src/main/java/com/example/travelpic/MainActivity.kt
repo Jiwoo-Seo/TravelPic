@@ -82,7 +82,7 @@ fun TravelPicNavigator() {
         NavHost(navController = navController, startDestination = "screen1") {
             composable("screen1") { Screen1(navController, albumViewModel, userAlbumViewModel) }
             composable("screen2") { Screen2(navController, albumViewModel) }
-            composable("screen3") { Screen3(navController, albumViewModel, userAlbumViewModel) }
+            composable("screen3") { Screen3(navController, userAlbumViewModel) }
             composable("AddLocationTag") { AddLocationTag(navController,albumViewModel, userAlbumViewModel) }
         }
     }
