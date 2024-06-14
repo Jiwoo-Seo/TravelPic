@@ -24,14 +24,12 @@ import com.example.travelpic.Screen.Screen3
 import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.data.AlbumViewModelFactory
 import com.example.travelpic.data.FirebaseAlbumRepository
-import com.example.travelpic.navViewmodel
 import com.example.travelpic.roomDB.AlbumCodeDatabase
 import com.example.travelpic.ui.theme.TravelPicTheme
 import com.example.travelpic.userAlbumViewModel.UserAlbumRepository
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModelFactory
 import com.google.firebase.Firebase
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.database
 
 class MainActivity : ComponentActivity() {
@@ -84,7 +82,7 @@ fun TravelPicNavigator() {
         NavHost(navController = navController, startDestination = "screen1") {
             composable("screen1") { Screen1(navController, albumViewModel, userAlbumViewModel) }
             composable("screen2") { Screen2(navController, albumViewModel) }
-            composable("screen3") { Screen3(navController) }
+            composable("screen3") { Screen3(navController, albumViewModel, userAlbumViewModel) }
             composable("AddLocationTag") { AddLocationTag(navController,albumViewModel, userAlbumViewModel) }
         }
     }

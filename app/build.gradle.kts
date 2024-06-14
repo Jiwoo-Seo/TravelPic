@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.accompanist.permissions)
     implementation(libs.firebase.storage.ktx)
+    implementation(libs.coil.compose)
     //implementation(libs.androidx.room.compiler)
     //annotationProcessor(libs.androidx.room.compiler)
     kapt(libs.androidx.room.compiler)

@@ -35,9 +35,10 @@ import kotlinx.coroutines.tasks.await
 
 fun uploadImageToFirebase(uri: Uri, albumCode: String,context: android.content.Context) {
     val storageReference = Firebase.storage.reference
-    val databaseReference: DatabaseReference = Firebase.database.reference
+    val databaseReference: DatabaseReference = Firebase.database.getReference("AlbumList/${albumCode}/images")
 //    val context = LocalContext.current
-    val key = databaseReference.child("AlbumList/${albumCode}").push().key
+
+    val key = databaseReference.push().key
     Log.i("imagetag","${key}")
     val imageReference = storageReference.child("images/${albumCode}/${key}")
     try {
@@ -52,7 +53,7 @@ fun uploadImageToFirebase(uri: Uri, albumCode: String,context: android.content.C
         key?.let {
             var picture = parseExifInfo(getExifInfo(context, uri))
             picture.imageUrl = key
-            databaseReference.child("AlbumList/${albumCode}").child(it).setValue(picture)
+            databaseReference.child(it).setValue(picture)
                 .addOnSuccessListener {
                     Log.i("imagetag","success") }
                 .addOnFailureListener{

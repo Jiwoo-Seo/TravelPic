@@ -101,7 +101,7 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = navViewModel.albumname, modifier = Modifier.padding(16.dp))
+            Text(text = navViewModel.albumname, modifier = Modifier.padding(16.dp).clickable { navController.navigate("screen3") })
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

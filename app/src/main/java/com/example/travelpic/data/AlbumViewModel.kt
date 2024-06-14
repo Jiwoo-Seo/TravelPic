@@ -47,13 +47,6 @@ class AlbumViewModel(private val repository: FirebaseAlbumRepository) : ViewMode
         }
     }
 
-    fun addPictureToAlbum(albumCode: String, picture: Picture) {
-        viewModelScope.launch {
-            repository.addPictureToAlbum(albumCode, picture)
-            fetchAlbums()
-        }
-    }
-
     fun likePicture(albumCode: String, pictureId: String, newLikeCount: Int) {
         viewModelScope.launch {
             repository.likePicture(albumCode, pictureId, newLikeCount)
