@@ -51,7 +51,7 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val backgroundImage: Painter = painterResource(id = R.drawable.background_image) // 배경 이미지 리소스
     var showLocationDialog by remember { mutableStateOf(false) }
-    
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -86,7 +86,7 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
             Log.i("DEBUG", selectedImageUri.toString())
         }
     }
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()

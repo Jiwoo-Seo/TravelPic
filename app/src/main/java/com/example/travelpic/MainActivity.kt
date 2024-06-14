@@ -24,14 +24,12 @@ import com.example.travelpic.Screen.Screen3
 import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.data.AlbumViewModelFactory
 import com.example.travelpic.data.FirebaseAlbumRepository
-import com.example.travelpic.navViewmodel
 import com.example.travelpic.roomDB.AlbumCodeDatabase
 import com.example.travelpic.ui.theme.TravelPicTheme
 import com.example.travelpic.userAlbumViewModel.UserAlbumRepository
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModelFactory
 import com.google.firebase.Firebase
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.database
 
 class MainActivity : ComponentActivity() {

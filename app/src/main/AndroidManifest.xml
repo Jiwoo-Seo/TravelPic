@@ -24,7 +24,7 @@
             android:resource="@xml/file_paths" />
         <meta-data
             android:name="com.naver.maps.map.CLIENT_ID"
-            android:value="" />
+            android:value="r48bd3r8dm" />
 
         <activity
             android:name=".MainActivity"
