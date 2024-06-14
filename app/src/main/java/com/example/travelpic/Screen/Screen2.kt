@@ -1,9 +1,13 @@
 package com.example.travelpic.Screen
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -67,8 +71,20 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
 
     // 선택한 이미지 정보 저장
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        selectedImageUri = uri
+    val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                selectedImageUri = uri
+            }
+        }
+        if (selectedImageUri != null) {
+            selectedImageUri?.let { uri ->
+                scope.launch {
+                    uploadImageToFirebase(uri = uri, albumCode = navViewModel.albumcode, context)
+                }
+            }
+            Log.i("DEBUG", selectedImageUri.toString())
+        }
     }
     
     Box(
@@ -105,19 +121,15 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                     .padding(vertical = 8.dp)
             ) {
                 ActionButton(icon = Icons.Default.UploadFile, text = "사진 업로드") {
-                    if(permissions.allPermissionsGranted){
-                        selectImageLauncher.launch("image/*")
-                        selectedImageUri?.let{uri ->
-                            scope.launch { 
-                                uploadImageToFirebase(uri = uri,
-                                    albumCode = navViewModel.albumcode,context)
-                            }
-                        }
-                    }else{
-                        permissions.launchMultiplePermissionRequest()
+                    permissions.launchMultiplePermissionRequest()
+                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "image/*"
                     }
-                    
-                    navController.navigate("screen3")
+                    if(permissions.allPermissionsGranted){
+                        selectImageLauncher.launch(intent)
+                    }
+//                    navController.navigate("screen3")
                 }
                 ActionButton(icon = Icons.Default.Place, text = "위치태그") {
                     showLocationDialog = true

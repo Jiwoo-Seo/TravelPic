@@ -1,10 +1,12 @@
 package com.example.travelpic
 
 import android.content.Context
+import android.media.ExifInterface
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,8 +71,15 @@ fun getExifInfo(context: Context, uri: Uri): String {
         val date = dateFormat.parse(dateTime ?: "") ?: Date()
         val formattedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(date)
         val model = exif.getAttribute(androidx.exifinterface.media.ExifInterface.TAG_MODEL) ?: "Unknown"
-        val latitude = exif.latLong?.get(0) ?: "Unknown"
-        val longitude = exif.latLong?.get(1) ?: "Unknown"
+        var latitude = "Unknown"
+        var longitude = "Unknown"
+
+        val llexif = ExifInterface(context.contentResolver.openInputStream(uri)!!)
+        val latLongArray = FloatArray(2)
+        if (llexif.getLatLong(latLongArray)) {
+            latitude = latLongArray[0].toString()
+            longitude = latLongArray[1].toString()
+        }
 
         "Date: $formattedDate\nModel: $model\nLatitude: $latitude\nLongitude: $longitude"
     } catch (e: Exception) {

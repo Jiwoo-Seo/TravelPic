@@ -2,6 +2,7 @@ package com.example.travelpic.data
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.example.travelpic.getExifInfo
+import com.example.travelpic.parseExifInfo
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.core.Context
@@ -31,29 +33,35 @@ import kotlinx.coroutines.tasks.await
 //파이어베이스에 앨범에 사진 저장
 
 
-fun uploadImageToFirebase(uri: Uri, albumCode: String,context: android.content.Context): String? {
+fun uploadImageToFirebase(uri: Uri, albumCode: String,context: android.content.Context) {
     val storageReference = Firebase.storage.reference
     val databaseReference: DatabaseReference = Firebase.database.reference
 //    val context = LocalContext.current
-    val imageReference = storageReference.child("images/${albumCode}/${uri.lastPathSegment}")
-    return try {
+    val key = databaseReference.child("AlbumList/${albumCode}").push().key
+    Log.i("imagetag","${key}")
+    val imageReference = storageReference.child("images/${albumCode}/${key}")
+    try {
         // Upload image to Firebase Storage
         imageReference.putFile(uri)
 
         // Get the download URL
-        val downloadUrl = imageReference.downloadUrl.toString().toUri()
+        val downloadUrl = imageReference.downloadUrl
 
         // Save the download URL to Firebase Realtime Database
-        val key = databaseReference.child("AlbumList/${albumCode}").push().key
+        //val key = databaseReference.child("AlbumList/${albumCode}").push().key
         key?.let {
-            getExifInfo(context, downloadUrl)
-            databaseReference.child("AlbumList/${albumCode}").child(it).setValue(downloadUrl.toString())
+            var picture = parseExifInfo(getExifInfo(context, uri))
+            picture.imageUrl = key
+            databaseReference.child("AlbumList/${albumCode}").child(it).setValue(picture)
+                .addOnSuccessListener {
+                    Log.i("imagetag","success") }
+                .addOnFailureListener{
+                    Log.i("imagetag","fail")
+                }
         }
 
-        downloadUrl.toString()
     } catch (e: Exception) {
         e.printStackTrace()
-        null
     }
 }
 

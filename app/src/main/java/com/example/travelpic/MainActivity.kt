@@ -31,6 +31,7 @@ import com.example.travelpic.userAlbumViewModel.UserAlbumRepository
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModelFactory
 import com.google.firebase.Firebase
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.database
 
 class MainActivity : ComponentActivity() {
