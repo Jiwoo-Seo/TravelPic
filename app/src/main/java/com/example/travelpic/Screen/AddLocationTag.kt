@@ -13,11 +13,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.travelpic.LocalNavGraphViewModelStoreOwner
 import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel
 import com.example.travelpic.data.FirebaseAlbumRepository
 import com.example.travelpic.navViewmodel
-import com.example.travelpic.LocalNavGraphViewModelStoreOwner
 import com.google.firebase.Firebase
 import com.google.firebase.database.database
 import com.naver.maps.geometry.LatLng
@@ -127,8 +127,9 @@ fun AddLocationTag(
             confirmButton = {
                 Button(onClick = {
                     coroutineScope.launch {
+                        val albumCode = navViewModel.albumcode
                         if (locationTagName.isNotBlank() && albumCode != null) {
-                            repository.addLocationTagToAlbum(albumCode, locationTagName)
+                            repository.addLocationTagToAlbum(albumCode, locationTagName, detailedAddress)
                             showInputDialog = false
                             navController.navigateUp()
                         }
@@ -144,6 +145,7 @@ fun AddLocationTag(
             }
         )
     }
+
 }
 
 suspend fun searchAddress(context: android.content.Context, query: String, currentLocation: LatLng): Pair<LatLng, String> {
