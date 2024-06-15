@@ -23,7 +23,7 @@ fun PictureClassificationDialog(
 ) {
     val coroutineScope = rememberCoroutineScope()
     var selectedTag by remember { mutableStateOf("") }
-    var locationTags by remember { mutableStateOf<List<String>>(emptyList()) }
+    var locationTags by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     LaunchedEffect(albumCode) {
         repository.getLocationTags(albumCode) { tags ->
@@ -37,7 +37,7 @@ fun PictureClassificationDialog(
         text = {
             Column {
                 Text("위치태그를 선택하세요:")
-                locationTags.forEach { tag ->
+                locationTags.forEach { (tag, address) ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
@@ -49,7 +49,7 @@ fun PictureClassificationDialog(
                             selected = selectedTag == tag,
                             onClick = { selectedTag = tag }
                         )
-                        Text(text = tag)
+                        Text(text = "$tag ($address)")
                     }
                 }
             }

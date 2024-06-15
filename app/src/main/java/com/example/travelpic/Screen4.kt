@@ -41,6 +41,7 @@ import com.example.travelpic.data.Album
 import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.data.AlbumViewModelFactory
 import com.example.travelpic.data.FirebaseAlbumRepository
+import com.example.travelpic.navViewmodel
 import com.example.travelpic.roomDB.AlbumCode
 import com.google.firebase.Firebase
 import com.google.firebase.database.database

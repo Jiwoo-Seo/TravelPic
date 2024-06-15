@@ -64,29 +64,6 @@ class FirebaseAlbumRepository(private val table: DatabaseReference) {
             }
     }
 
-    fun addLocationTagToAlbum(albumCode: String, locationTag: String) {
-        table.child(albumCode).child("locationTags").push().setValue(locationTag)
-            .addOnSuccessListener {
-                Log.d("Firebase", "Location tag added successfully")
-            }
-            .addOnFailureListener {
-                Log.e("Firebase", "Error adding location tag", it)
-            }
-    }
-
-    fun getLocationTags(albumCode: String, callback: (List<String>) -> Unit) {
-        table.child(albumCode).child("locationTags").addListenerForSingleValueEvent(object: ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val tags = snapshot.children.mapNotNull { it.value as? String }
-                callback(tags)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Handle error if needed
-            }
-        })
-    }
-
     fun getPicturesForAlbum(albumCode: String, callback: (List<Picture>) -> Unit) {
         table.child(albumCode).child("pictures").addListenerForSingleValueEvent(object: ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -105,16 +82,36 @@ class FirebaseAlbumRepository(private val table: DatabaseReference) {
         pictureRef.setValue(picture).await()
     }
 
-    fun getPicturesForLocationTag(albumCode: String, locationTag: String, callback: (List<Picture>) -> Unit) {
-        table.child(albumCode).child("locationTags").child(locationTag).addListenerForSingleValueEvent(object: ValueEventListener {
+    fun addLocationTagToAlbum(albumCode: String, locationTag: String, detailedAddress: String) {
+        val locationTagRef = table.child(albumCode).child("locationTags").child(locationTag)
+        locationTagRef.child("address").setValue(detailedAddress)
+            .addOnSuccessListener {
+                Log.d("Firebase", "Location tag added successfully")
+            }
+            .addOnFailureListener {
+                Log.e("Firebase", "Error adding location tag", it)
+            }
+    }
+
+    fun getLocationTags(albumCode: String, callback: (Map<String, String>) -> Unit) {
+        table.child(albumCode).child("locationTags").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val pictures = snapshot.children.mapNotNull { it.getValue(Picture::class.java) }
-                callback(pictures)
+                val tags = snapshot.children.mapNotNull {
+                    val tag = it.key
+                    val address = it.child("address").value as? String
+                    if (tag != null && address != null) {
+                        tag to address
+                    } else {
+                        null
+                    }
+                }.toMap()
+                callback(tags)
             }
 
             override fun onCancelled(error: DatabaseError) {
-                // Handle error if needed
+                // Handle error
             }
         })
     }
+
 }

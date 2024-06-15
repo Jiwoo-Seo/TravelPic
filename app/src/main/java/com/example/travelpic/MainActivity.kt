@@ -28,6 +28,7 @@ import com.example.travelpic.data.AlbumViewModelFactory
 import com.example.travelpic.data.FirebaseAlbumRepository
 import com.example.travelpic.roomDB.AlbumCodeDatabase
 import com.example.travelpic.Screen.Screen2
+import com.example.travelpic.navViewmodel
 import com.example.travelpic.ui.theme.TravelPicTheme
 import com.example.travelpic.userAlbumViewModel.UserAlbumRepository
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel

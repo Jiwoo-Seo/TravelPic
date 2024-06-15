@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -36,39 +37,45 @@ fun ClassifyPicturesScreen(
         Text(text = "사진 분류 - $locationTag", style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(16.dp))
         LazyColumn {
-            items(pictures) { picture ->
-                PictureItem(
-                    picture = picture,
-                    onClick = {
-                        coroutineScope.launch {
-                            repository.addPictureToLocationTag(albumCode, locationTag, picture)
-                            navController.navigateUp()
+            items(pictures.chunked(3)) { rowPictures ->
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    rowPictures.forEach { picture ->
+                        PictureItem(
+                            picture = picture,
+                            onClick = {
+                                coroutineScope.launch {
+                                    repository.addPictureToLocationTag(albumCode, locationTag, picture)
+                                    navController.navigateUp()
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                        )
+                    }
+                    if (rowPictures.size < 3) {
+                        repeat(3 - rowPictures.size) {
+                            Spacer(modifier = Modifier.weight(1f).padding(4.dp))
                         }
                     }
-                )
+                }
             }
         }
     }
 }
 
 @Composable
-fun PictureItem(picture: Picture, onClick: () -> Unit) {
+fun PictureItem(picture: Picture, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val painter = rememberAsyncImagePainter(picture.imageUrl)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
             .clickable(onClick = onClick)
     ) {
         Image(
             painter = painter,
             contentDescription = null,
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier.fillMaxSize()
         )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(text = "Date: ${picture.Date}")
-            Text(text = "Model: ${picture.Model}")
-        }
     }
 }
