@@ -1,65 +1,44 @@
 package com.example.travelpic.data
 
 import android.util.Log
-import com.google.firebase.Firebase
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-
+import kotlinx.coroutines.tasks.await
 
 class FirebaseAlbumRepository(private val table: DatabaseReference) {
+
     fun fetchAlbums(): Flow<List<Picture>> = callbackFlow {
         val listener = object: ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {//변경될때마다 호출
+            override fun onDataChange(snapshot: DataSnapshot) {
                 val pictureList = mutableListOf<Picture>()
                 for (itemSnapshot in snapshot.children) {
                     val picture = itemSnapshot.getValue(Picture::class.java)
-                    //item객체가 null이 아닐때만
                     picture?.let { pictureList.add(picture) }
                 }
                 trySend(pictureList)
             }
 
-            override fun onCancelled(error: DatabaseError) {//실패하면 호출
-                //TODO("Not yet implemented")
+            override fun onCancelled(error: DatabaseError) {
+                //TODO: Handle error
             }
-
         }
         table.addValueEventListener(listener)
-        awaitClose{//flow가 중단됐을때 호출되는 콜백함수
+        awaitClose {
             table.removeEventListener(listener)
         }
     }
-    /*
-    fun fetchAlbums(callback: (List<Album>) -> Unit) {
-        table.child("albums").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val albumList = mutableListOf<Album>()
-                for (albumSnapshot in snapshot.children) {
-                    val album = albumSnapshot.getValue(Album::class.java)
-                    if (album != null) {
-                        albumList.add(album)
-                    }
-                }
-                callback(albumList)
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("Firebase", "Error fetching albums", error.toException())
-            }
-        })
-    }*/
-
-    fun addAlbum(album: Album) {Log.i("firebase","clickaddAlbum")
-        table.child(album.code).setValue(album).addOnCompleteListener{
-            Log.e("firebase","addAlbum")
+    fun addAlbum(album: Album) {
+        Log.i("firebase", "clickaddAlbum")
+        table.child(album.code).setValue(album).addOnCompleteListener {
+            Log.e("firebase", "addAlbum")
         }.addOnFailureListener {
-            Log.e("firebase","addAlbumFail")
+            Log.e("firebase", "addAlbumFail")
         }
     }
 
@@ -83,5 +62,59 @@ class FirebaseAlbumRepository(private val table: DatabaseReference) {
             .addOnFailureListener {
                 Log.e("Firebase", "Error updating like count", it)
             }
+    }
+
+    fun addLocationTagToAlbum(albumCode: String, locationTag: String) {
+        table.child(albumCode).child("locationTags").push().setValue(locationTag)
+            .addOnSuccessListener {
+                Log.d("Firebase", "Location tag added successfully")
+            }
+            .addOnFailureListener {
+                Log.e("Firebase", "Error adding location tag", it)
+            }
+    }
+
+    fun getLocationTags(albumCode: String, callback: (List<String>) -> Unit) {
+        table.child(albumCode).child("locationTags").addListenerForSingleValueEvent(object: ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val tags = snapshot.children.mapNotNull { it.value as? String }
+                callback(tags)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error if needed
+            }
+        })
+    }
+
+    fun getPicturesForAlbum(albumCode: String, callback: (List<Picture>) -> Unit) {
+        table.child(albumCode).child("pictures").addListenerForSingleValueEvent(object: ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val pictures = snapshot.children.mapNotNull { it.getValue(Picture::class.java) }
+                callback(pictures)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error if needed
+            }
+        })
+    }
+
+    suspend fun addPictureToLocationTag(albumCode: String, locationTag: String, picture: Picture) {
+        val pictureRef = table.child(albumCode).child("locationTags").child(locationTag).push()
+        pictureRef.setValue(picture).await()
+    }
+
+    fun getPicturesForLocationTag(albumCode: String, locationTag: String, callback: (List<Picture>) -> Unit) {
+        table.child(albumCode).child("locationTags").child(locationTag).addListenerForSingleValueEvent(object: ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val pictures = snapshot.children.mapNotNull { it.getValue(Picture::class.java) }
+                callback(pictures)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error if needed
+            }
+        })
     }
 }

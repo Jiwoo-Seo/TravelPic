@@ -33,38 +33,98 @@ import kotlinx.coroutines.tasks.await
 //파이어베이스에 앨범에 사진 저장
 
 
-fun uploadImageToFirebase(uri: Uri, albumCode: String,context: android.content.Context) {
-    val storageReference = Firebase.storage.reference
-    val databaseReference: DatabaseReference = Firebase.database.getReference("AlbumList/${albumCode}/images")
-//    val context = LocalContext.current
+//fun uploadImageToFirebase(uri: Uri, albumCode: String,context: android.content.Context) {
+//    val storageReference = Firebase.storage.reference
+//    val databaseReference: DatabaseReference = Firebase.database.getReference("AlbumList/${albumCode}/images")
+////    val context = LocalContext.current
+//
+//    val key = databaseReference.push().key
+//    Log.i("imagetag","${key}")
+//    val imageReference = storageReference.child("images/${albumCode}/${key}")
+//    try {
+//        // Upload image to Firebase Storage
+//        imageReference.putFile(uri)
+//
+//        // Get the download URL
+//        val downloadUrl = imageReference.downloadUrl
+//
+//        // Save the download URL to Firebase Realtime Database
+//        //val key = databaseReference.child("AlbumList/${albumCode}").push().key
+//        key?.let {
+//            var picture = parseExifInfo(getExifInfo(context, uri))
+//            picture.imageUrl = key
+//            databaseReference.child(it).setValue(picture)
+//                .addOnSuccessListener {
+//                    Log.i("imagetag","success") }
+//                .addOnFailureListener{
+//                    Log.i("imagetag","fail")
+//                }
+//        }
+//
+//    } catch (e: Exception) {
+//        e.printStackTrace()
+//    }
+//}
 
-    val key = databaseReference.push().key
-    Log.i("imagetag","${key}")
-    val imageReference = storageReference.child("images/${albumCode}/${key}")
+//suspend fun uploadImageToFirebase(uri: Uri, albumCode: String, context: android.content.Context) {
+//    val storageReference = Firebase.storage.reference
+//    val databaseReference: DatabaseReference = Firebase.database.getReference("AlbumList/$albumCode/images")
+//    val key = databaseReference.push().key
+//    Log.i("imagetag", "$key")
+//    val imageReference = storageReference.child("images/$albumCode/$key")
+//
+//    try {
+//        // Upload image to Firebase Storage
+//        val uploadTask = imageReference.putFile(uri).await()
+//
+//        // Get the download URL after the upload is complete
+//        val downloadUrl = imageReference.downloadUrl.await()
+//
+//        // Save the download URL to Firebase Realtime Database
+//        key?.let {
+//            val picture = parseExifInfo(getExifInfo(context, uri))
+//            picture.imageUrl = downloadUrl.toString()  // Store the download URL
+//            databaseReference.child(it).setValue(picture)
+//                .addOnSuccessListener {
+//                    Log.i("imagetag", "success")
+//                }
+//                .addOnFailureListener {
+//                    Log.i("imagetag", "fail")
+//                }
+//        }
+//    } catch (e: Exception) {
+//        Log.e("Upload Error", "Failed to upload image", e)
+//    }
+//}
+
+suspend fun uploadImageToFirebase(uri: Uri, albumCode: String, context: android.content.Context, repository: FirebaseAlbumRepository) {
+    val storageReference = Firebase.storage.reference
+    val key = Firebase.database.reference.child("AlbumList/$albumCode/pictures").push().key
+    Log.i("imagetag", "$key")
+    val imageReference = storageReference.child("images/$albumCode/$key")
+
     try {
         // Upload image to Firebase Storage
-        imageReference.putFile(uri)
+        imageReference.putFile(uri).await()
 
-        // Get the download URL
-        val downloadUrl = imageReference.downloadUrl
+        // Get the download URL after the upload is complete
+        val downloadUrl = imageReference.downloadUrl.await()
 
-        // Save the download URL to Firebase Realtime Database
-        //val key = databaseReference.child("AlbumList/${albumCode}").push().key
+        // Create Picture object with Exif information and download URL
+        val picture = parseExifInfo(getExifInfo(context, uri))
+        picture.imageUrl = downloadUrl.toString()
+
+        // Save the Picture object to Firebase Realtime Database
         key?.let {
-            var picture = parseExifInfo(getExifInfo(context, uri))
-            picture.imageUrl = key
-            databaseReference.child(it).setValue(picture)
-                .addOnSuccessListener {
-                    Log.i("imagetag","success") }
-                .addOnFailureListener{
-                    Log.i("imagetag","fail")
-                }
+            repository.addPictureToAlbum(albumCode, picture)
         }
 
+        Log.i("imagetag", "Image uploaded and saved successfully")
     } catch (e: Exception) {
-        e.printStackTrace()
+        Log.e("Upload Error", "Failed to upload image", e)
     }
 }
+
 
 //앨범리스트
 @Composable
