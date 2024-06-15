@@ -11,9 +11,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel
+import com.example.travelpic.data.FirebaseAlbumRepository
+import com.example.travelpic.navViewmodel
+import com.example.travelpic.LocalNavGraphViewModelStoreOwner
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
 import com.naver.maps.map.CameraUpdate
@@ -28,11 +34,16 @@ fun AddLocationTag(
     albumViewModel: AlbumViewModel,
     userAlbumViewModel: UserAlbumViewModel
 ) {
+    val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
+    val albumCode = navViewModel.albumcode // 앨범 코드를 가져옴
     val context = LocalContext.current
+    val repository = FirebaseAlbumRepository(Firebase.database.getReference("AlbumList"))
     var address by remember { mutableStateOf("") }
     var location by remember { mutableStateOf(LatLng(37.5666102, 126.9783881)) }
     var detailedAddress by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
+    var showInputDialog by remember { mutableStateOf(false) }
+    var locationTagName by remember { mutableStateOf("") }
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition(location, 16.0)
     }
@@ -87,15 +98,47 @@ fun AddLocationTag(
             confirmButton = {
                 Button(onClick = {
                     showDialog = false
-                    // 위치태그 추가 로직을 여기에 추가합니다.
-
-
+                    showInputDialog = true
                 }) {
                     Text("확인")
                 }
             },
             dismissButton = {
                 Button(onClick = { showDialog = false }) {
+                    Text("취소")
+                }
+            }
+        )
+    }
+
+    if (showInputDialog) {
+        AlertDialog(
+            onDismissRequest = { showInputDialog = false },
+            title = { Text("위치태그 이름 입력") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = locationTagName,
+                        onValueChange = { locationTagName = it },
+                        label = { Text("위치태그 이름") }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    coroutineScope.launch {
+                        if (locationTagName.isNotBlank() && albumCode != null) {
+                            repository.addLocationTagToAlbum(albumCode, locationTagName)
+                            showInputDialog = false
+                            navController.navigateUp()
+                        }
+                    }
+                }) {
+                    Text("확인")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showInputDialog = false }) {
                     Text("취소")
                 }
             }
@@ -136,7 +179,7 @@ fun distanceBetween(start: LatLng, end: LatLng): Double {
     val endLng = Math.toRadians(end.longitude)
 
     val dLat = endLat - startLat
-    val dLng = endLng - startLng
+    val dLng = endLng
 
     val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
             Math.cos(startLat) * Math.cos(endLat) *

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAddAlt
-import androidx.compose.material.icons.filled.PhotoAlbum
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.*
@@ -34,26 +33,35 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.travelpic.LocalNavGraphViewModelStoreOwner
+import com.example.travelpic.PictureClassification.PictureClassificationDialog
 import com.example.travelpic.R
-import com.naver.maps.map.compose.ExperimentalNaverMapApi
-import com.naver.maps.map.compose.NaverMap
 import com.example.travelpic.data.AlbumViewModel
+import com.example.travelpic.data.FirebaseAlbumRepository
 import com.example.travelpic.data.uploadImageToFirebase
 import com.example.travelpic.highlightAlbumMenu
 import com.example.travelpic.navViewmodel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import com.naver.maps.map.compose.ExperimentalNaverMapApi
+import com.naver.maps.map.compose.MapUiSettings
+import com.naver.maps.map.compose.NaverMap
+import com.naver.maps.map.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalNaverMapApi::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalNaverMapApi::class)
 @Composable
 fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
-    val backgroundImage: Painter = painterResource(id = R.drawable.background_image) // 배경 이미지 리소스
+    val backgroundImage: Painter = painterResource(id = R.drawable.background_image)
     var showLocationDialog by remember { mutableStateOf(false) }
+    var showPictureClassificationDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val repository = FirebaseAlbumRepository(Firebase.database.getReference("AlbumList"))
+
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         rememberMultiplePermissionsState(
             permissions = listOf(
@@ -69,7 +77,6 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
         )
     }
 
-    // 선택한 이미지 정보 저장
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     val selectImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -80,7 +87,12 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
         if (selectedImageUri != null) {
             selectedImageUri?.let { uri ->
                 scope.launch {
-                    uploadImageToFirebase(uri = uri, albumCode = navViewModel.albumcode, context)
+                    try {
+                        uploadImageToFirebase(uri, navViewModel.albumcode, context, repository)
+                        Log.i("DEBUG", "Image uploaded successfully: $uri")
+                    } catch (e: Exception) {
+                        Log.e("Upload Error", "Failed to upload image", e)
+                    }
                 }
             }
             Log.i("DEBUG", selectedImageUri.toString())
@@ -88,8 +100,7 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         Image(
             painter = backgroundImage,
@@ -101,15 +112,22 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = navViewModel.albumname, modifier = Modifier.padding(16.dp).clickable { navController.navigate("screen3") })
+            Text(
+                text = navViewModel.albumname,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { navController.navigate("screen3") }
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                     .background(Color.White)
             ) {
+                val cameraPositionState = rememberCameraPositionState()
                 NaverMap(
-                    modifier = Modifier.fillMaxSize()
+                    cameraPositionState = cameraPositionState,
+                    uiSettings = MapUiSettings(isZoomControlEnabled = false)
                 )
             }
             Row(
@@ -126,16 +144,16 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                         addCategory(Intent.CATEGORY_OPENABLE)
                         type = "image/*"
                     }
-                    if(permissions.allPermissionsGranted){
+                    if (permissions.allPermissionsGranted) {
                         selectImageLauncher.launch(intent)
                     }
-//                    navController.navigate("screen3")
                 }
+
                 ActionButton(icon = Icons.Default.Place, text = "위치태그") {
                     showLocationDialog = true
                 }
-                //ActionButton(icon = Icons.Default.PhotoAlbum, text = "하이라이트 앨범")
-                highlightAlbumMenu(navController,albumViewModel);
+
+                highlightAlbumMenu(navController, albumViewModel)
                 ActionButton(icon = Icons.Default.PersonAddAlt, text = "친구 초대")
             }
         }
@@ -160,7 +178,7 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                     }
                     Button(
                         onClick = {
-                            // 사진 분류 로직 추가
+                            showPictureClassificationDialog = true
                             showLocationDialog = false
                         },
                         modifier = Modifier
@@ -177,6 +195,15 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                     Text("닫기")
                 }
             }
+        )
+    }
+
+    if (showPictureClassificationDialog) {
+        PictureClassificationDialog(
+            albumCode = navViewModel.albumcode,
+            onDismiss = { showPictureClassificationDialog = false },
+            repository = repository,
+            navController = navController
         )
     }
 }
