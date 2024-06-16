@@ -62,7 +62,7 @@ fun highlightAlbumMenu(navController: NavController, albumViewModel: AlbumViewMo
                     Text("하이라이트 앨범 보기", modifier = Modifier.weight(1f))
                     Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "하이라이트 앨범 만들기")}
             }, onClick = { expanded = false
-                navController.navigate("screen5")})
+                navController.navigate("screen6")})
         }
     }
 }

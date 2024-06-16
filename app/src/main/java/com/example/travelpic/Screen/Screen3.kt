@@ -124,7 +124,8 @@ fun Screen3(
         dbref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
-
+                    imageNames = emptyList()
+                    imageUrls = emptyList()
                     for (snapshot in dataSnapshot.children) {
                         val imagekey = snapshot.child("key").getValue(String::class.java)
                         val imageUrl = snapshot.child("imageUrl").getValue(String::class.java)

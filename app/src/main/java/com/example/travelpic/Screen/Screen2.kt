@@ -95,8 +95,12 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                     try {
                         uploadImageToFirebase(uri, navViewModel.albumcode, context, repository)
                         Log.i("DEBUG", "Image uploaded successfully: $uri")
+                        Toast.makeText(context, "사진 업로드를 성공하였습니다.", Toast.LENGTH_SHORT).show()
+
                     } catch (e: Exception) {
                         Log.e("Upload Error", "Failed to upload image", e)
+                        Toast.makeText(context, "****사진 업로드를 실패하였습니다****", Toast.LENGTH_SHORT).show()
+
                     }
                 }
             }

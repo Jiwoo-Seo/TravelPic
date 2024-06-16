@@ -116,6 +116,7 @@ fun TravelPicNavigator() {
             composable("screen3") { Screen3(navController, userAlbumViewModel) }
             composable("screen4") { Screen4(navController, albumViewModel) }
             composable("screen5") { Screen5(navController, albumViewModel) }
+            composable("screen6") { Screen6(navController, albumViewModel) }
             composable("AddLocationTag") { AddLocationTag(navController, albumViewModel, userAlbumViewModel) }
             composable(
                 route = "ClassifyPicturesScreen/{albumCode}/{locationTag}",
