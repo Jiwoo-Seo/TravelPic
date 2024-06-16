@@ -139,6 +139,7 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
                     albumName = ""
                     navController.navigate("screen2")
                     showDialog = false
+                    Log.i("albumcode",newAlbum.code)
                 }) {
                     Text("확인")
                 }

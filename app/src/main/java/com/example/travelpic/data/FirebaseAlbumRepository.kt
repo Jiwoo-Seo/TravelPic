@@ -43,7 +43,7 @@ class FirebaseAlbumRepository(private val table: DatabaseReference) {
     }
 
     fun addPictureToAlbum(albumCode: String, picture: Picture) {
-        val pictureRef = table.child(albumCode).child("pictures").push()
+        val pictureRef = table.child(albumCode).child("pictures/${picture.key}")
         pictureRef.setValue(picture)
             .addOnSuccessListener {
                 Log.d("Firebase", "Picture saved successfully")
