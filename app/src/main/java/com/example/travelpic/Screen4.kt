@@ -1,5 +1,6 @@
 package com.example.travelpic
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -44,26 +47,80 @@ import com.example.travelpic.data.FirebaseAlbumRepository
 import com.example.travelpic.navViewmodel
 import com.example.travelpic.roomDB.AlbumCode
 import com.google.firebase.Firebase
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
+import com.google.firebase.database.ktx.database
+import kotlin.math.max
 
 @Composable
 fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
-    val pictures = albumViewModel.pictures.collectAsState(initial = emptyList())
-    val uniqueLocationTags = albumViewModel.uniqueLocationTags.collectAsState(emptyList())
     var selectedTags by remember { mutableStateOf(setOf<String>()) }
     var newHighlightAlbumName by remember { mutableStateOf("")}
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     var maxLike by remember { mutableStateOf(0) }
-    pictures.value.forEach { pic ->
-       if (pic.LikeCount>maxLike){
-           maxLike = pic.LikeCount
-       }
+    val dbref = com.google.firebase.ktx.Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/pictures")
+    val locationref = com.google.firebase.ktx.Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/locationTags")
+    // MutableState 리스트로 이미지 URL 저장
+    var imageUrls by remember { mutableStateOf(listOf<String>()) }
+    var imageNames by remember { mutableStateOf(listOf<String>()) }
+    var imageLikes by remember { mutableStateOf(listOf<Int>()) }
+    LaunchedEffect(Unit) {
+        dbref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (snapshot in dataSnapshot.children) {
+                        val imagekey = snapshot.child("key").getValue(String::class.java)
+                        val imageUrl = snapshot.child("imageUrl").getValue(String::class.java)
+                        val imageLike = snapshot.child("lickCount").getValue(Int::class.java)?:0
+                        if (imagekey != null && imageUrl != null && imageLikes != null) {
+                            imageNames += imagekey
+                            imageUrls += imageUrl
+                            imageLikes += imageLike
+                            if(maxLike<imageLike){
+                                maxLike = imageLike
+                            }
+                        }
+                    }
 
+                } else {
+                    println("No data available")
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                println("Error: ${databaseError.message}")
+            }
+        })
     }
+
+    var locationTagsList by remember { mutableStateOf(listOf<String>()) }
+//    LaunchedEffect(Unit) {
+//        locationref.addListenerForSingleValueEvent(object : ValueEventListener {
+//            override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                if (dataSnapshot.exists()) {
+//                    for (snapshot in dataSnapshot.children) {
+//                        val locationTag = snapshot.getValue(String::class.java)
+//                        if (locationTag != null) {
+//                            locationTagsList += locationTag
+//                            Log.i("locationTag", "추가완료: $locationTag")
+//                        }
+//                    }
+//                } else {
+//                    println("No data available")
+//                }
+//            }
+//
+//            override fun onCancelled(databaseError: DatabaseError) {
+//                println("Error: ${databaseError.message}")
+//            }
+//        })
+//    }
     var slider_Like by remember { mutableStateOf(0) }
     slider_Like = maxLike/2
     var slider_PictureCount by remember { mutableStateOf(0) }
-    slider_PictureCount = pictures.value.size/2
+    slider_PictureCount = imageNames.size/2
 
     val scrollState = rememberScrollState()
     Box(modifier = Modifier
@@ -82,7 +139,7 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
                 value = slider_Like.toFloat(),
                 onValueChange = { slider_Like = it.toInt() },
                 valueRange = 0f..maxLike.toFloat(),
-                steps = maxLike,
+                steps = max(maxLike-1,0),
                 modifier = Modifier.width(350.dp)
             )
             Divider(modifier = Modifier.padding(5.dp))
@@ -90,8 +147,8 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
             Slider(
                 value = slider_PictureCount.toFloat(),
                 onValueChange = { slider_PictureCount = it.toInt() },
-                valueRange = 0f..pictures.value.size.toFloat(),
-                steps = pictures.value.size,
+                valueRange = 0f..imageNames.size.toFloat(),
+                steps = max(imageNames.size-1,0),
                 modifier = Modifier.width(350.dp)
             )
             Divider(modifier = Modifier.padding(5.dp))
@@ -101,7 +158,7 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
                 modifier = Modifier.fillMaxWidth().verticalScroll(scrollState)
                     .height(500.dp)
             ) {
-                uniqueLocationTags.value.forEach { tag ->
+                locationTagsList.forEach { tag ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
                             checked = selectedTags.contains(tag),

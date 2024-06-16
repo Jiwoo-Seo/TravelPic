@@ -169,26 +169,28 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
             confirmButton = {
                 var albumname by remember { mutableStateOf("") }
                 Button(onClick = {
-                    Log.i("albumcode",albumCode)
-                    val ref = Firebase.database.getReference("AlbumList/${albumCode}/name")
-                    ref.child("memo").get().addOnSuccessListener { dataSnapshot ->
+                    Log.i("albumcode", albumCode)
+
+                    val ref = Firebase.database.getReference("AlbumList/$albumCode/name")
+                    ref.get().addOnSuccessListener { dataSnapshot ->
                         if (dataSnapshot.exists()) {
                             albumname = dataSnapshot.getValue(String::class.java).toString()
-                            // memoValue를 사용하여 원하는 작업을 수행할 수 있습니다.
-                            // 예: MutableState로 저장하여 Compose UI에 반영하는 등의 작업
+                            // 성공적으로 데이터를 가져왔을 때만 다음 작업 수행
+                            val newAlbumCode = AlbumCode(albumCode, albumname)
+                            userAlbumViewModel.addAlbumCode(newAlbumCode)
+                            navViewModel.albumname = albumname  // 여기서 albumname을 사용
+                            navViewModel.albumcode = albumCode
+                            albumCode = ""
+                            navController.navigate("screen2")
+                            showJoinDialog = false
                         } else {
                             // 데이터가 없는 경우 처리
+                            Log.i("Firebase", "Data does not exist")
                         }
                     }.addOnFailureListener { exception ->
                         // 데이터를 가져오는 도중 에러가 발생한 경우 처리
+                        Log.e("Firebase", "Error getting data", exception)
                     }
-                    val newAlbumCode = AlbumCode(albumCode, albumname)
-                    userAlbumViewModel.addAlbumCode(newAlbumCode)
-                    navViewModel.albumname = albumName
-                    navViewModel.albumcode = albumCode
-                    albumCode = ""
-                    navController.navigate("screen2")
-                    showJoinDialog = false
                 }) {
                     Text("확인")
                 }
