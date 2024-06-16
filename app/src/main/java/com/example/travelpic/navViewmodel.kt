@@ -13,7 +13,7 @@ class navViewmodel : ViewModel(){
     var maxlike = 0
     var maxcount = 0
     var selectedTags by mutableStateOf(setOf<String>())
-    var currentIndex by  mutableStateOf(0)
+    var newHighlight = false
 
     fun setAlbumInfo(code:String, name:String){
         albumcode = code

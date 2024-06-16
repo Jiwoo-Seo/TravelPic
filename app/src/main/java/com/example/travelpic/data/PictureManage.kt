@@ -99,7 +99,7 @@ import kotlinx.coroutines.tasks.await
 
 suspend fun uploadImageToFirebase(uri: Uri, albumCode: String, context: android.content.Context, repository: FirebaseAlbumRepository) {
     val storageReference = Firebase.storage.reference
-    val key = Firebase.database.reference.child("AlbumList/$albumCode/pictures").push().key
+    val key = Firebase.database.getReference("AlbumList/$albumCode/pictures").push().key
     Log.i("imagetag", "$key")
     val imageReference = storageReference.child("images/$albumCode/${key.toString()}")
 

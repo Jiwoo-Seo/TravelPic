@@ -60,8 +60,8 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
     var newHighlightAlbumName by remember { mutableStateOf("")}
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     var maxLike by remember { mutableStateOf(0) }
-    val dbref = com.google.firebase.ktx.Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/pictures")
-    val locationref = com.google.firebase.ktx.Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/locationTags")
+    val dbref = Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/pictures")
+    val locationref = Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/locationTags")
     // MutableState 리스트로 이미지 URL 저장
     var imageUrls by remember { mutableStateOf(listOf<String>()) }
     var imageNames by remember { mutableStateOf(listOf<String>()) }
@@ -70,14 +70,18 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
         dbref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
+                    imageUrls = emptyList()
+                    imageNames = emptyList()
+                    imageLikes = emptyList()
                     for (snapshot in dataSnapshot.children) {
                         val imagekey = snapshot.child("key").getValue(String::class.java)
                         val imageUrl = snapshot.child("imageUrl").getValue(String::class.java)
-                        val imageLike = snapshot.child("lickCount").getValue(Int::class.java)?:0
+                        val imageLike = snapshot.child("likeCount").getValue(Int::class.java)?:0
                         if (imagekey != null && imageUrl != null && imageLikes != null) {
                             imageNames += imagekey
                             imageUrls += imageUrl
                             imageLikes += imageLike
+                            Log.i("infoimage","key: "+imagekey+"url: "+imageUrl+" like: "+imageLike)
                             if(maxLike<imageLike){
                                 maxLike = imageLike
                             }
@@ -96,31 +100,32 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
     }
 
     var locationTagsList by remember { mutableStateOf(listOf<String>()) }
-//    LaunchedEffect(Unit) {
-//        locationref.addListenerForSingleValueEvent(object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                if (dataSnapshot.exists()) {
-//                    for (snapshot in dataSnapshot.children) {
-//                        val locationTag = snapshot.getValue(String::class.java)
-//                        if (locationTag != null) {
-//                            locationTagsList += locationTag
-//                            Log.i("locationTag", "추가완료: $locationTag")
-//                        }
-//                    }
-//                } else {
-//                    println("No data available")
-//                }
-//            }
-//
-//            override fun onCancelled(databaseError: DatabaseError) {
-//                println("Error: ${databaseError.message}")
-//            }
-//        })
-//    }
-    var slider_Like by remember { mutableStateOf(0) }
-    slider_Like = maxLike/2
-    var slider_PictureCount by remember { mutableStateOf(0) }
-    slider_PictureCount = imageNames.size/2
+    LaunchedEffect(Unit) {
+        locationref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    locationTagsList = emptyList()
+                    for (snapshot in dataSnapshot.children) {
+                        val locationTag = snapshot.key.toString()
+                        if (locationTag != null) {
+                            locationTagsList += locationTag
+                            Log.i("locationddddTag", "추가완료: $locationTag")
+                        }
+                    }
+                } else {
+                    println("No data available")
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                println("Error: ${databaseError.message}")
+            }
+        })
+    }
+    var slider_Like by remember { mutableStateOf(maxLike/2) }
+
+    var slider_PictureCount by remember { mutableStateOf(imageNames.size/2) }
+
 
     val scrollState = rememberScrollState()
     Box(modifier = Modifier
@@ -139,22 +144,21 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
                 value = slider_Like.toFloat(),
                 onValueChange = { slider_Like = it.toInt() },
                 valueRange = 0f..maxLike.toFloat(),
-                steps = max(maxLike-1,0),
+                steps = maxLike,
                 modifier = Modifier.width(350.dp)
             )
             Divider(modifier = Modifier.padding(5.dp))
-            Text(text = "최대 사진 개수 : ${slider_PictureCount}개", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
+            Text(text = "앨범에 담을 사진 : 최대 ${slider_PictureCount}장", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
             Slider(
                 value = slider_PictureCount.toFloat(),
                 onValueChange = { slider_PictureCount = it.toInt() },
                 valueRange = 0f..imageNames.size.toFloat(),
-                steps = max(imageNames.size-1,0),
+                steps = imageNames.size,
                 modifier = Modifier.width(350.dp)
             )
             Divider(modifier = Modifier.padding(5.dp))
             Text(text = "위치 태그", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
             Column(
-                verticalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth().verticalScroll(scrollState)
                     .height(500.dp)
             ) {
@@ -195,6 +199,7 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
                             navViewModel.maxlike = slider_Like.toInt()
                             navViewModel.maxcount = slider_PictureCount.toInt()
                             navViewModel.selectedTags = selectedTags
+                            navViewModel.newHighlight = true
                             navController.navigate("screen5")
                         } )
             }
