@@ -140,7 +140,7 @@ fun Screen3(
     //val image: Painter = painterResource(id = currentImageUrl) // 이미지 리소스
     var memo by remember { mutableStateOf("") }
     var likecount by remember { mutableStateOf(0) }
-    if (showNoteDialog) {
+    if (showNoteDialog&&CurrentImageName!="") {
         ref.child("memo").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
@@ -189,7 +189,7 @@ fun Screen3(
                     IconButton(onClick = { /* TODO */ }) {
                         Icon(imageVector = Icons.Filled.Download, contentDescription = null, tint = Color.White)
                     }
-                    IconButton(onClick = { showNoteDialog = true }) {
+                    IconButton(onClick = { if(CurrentImageName!="")showNoteDialog = true }) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.Assignment, contentDescription = null, tint = Color.White)
                     }
                     coroutineScope.launch {
@@ -211,20 +211,23 @@ fun Screen3(
                     }
 
                     IconButton(onClick = {
-                        coroutineScope.launch {
-                            userAlbumViewModel.toggleImageInLikelist(navViewModel.albumcode,CurrentImageName) { newState ->
-                                isLiked = newState
+                        if(CurrentImageName!=""){
+                            coroutineScope.launch {
+                                userAlbumViewModel.toggleImageInLikelist(navViewModel.albumcode,CurrentImageName) { newState ->
+                                    isLiked = newState
+                                }
                             }
+                            if(isLiked){
+                                likecount-=1
+                            }else{
+                                likecount+=1
+                            }
+                            ref.child("likeCount").setValue(likecount)
                         }
-                        if(isLiked){
-                            likecount-=1
-                        }else{
-                            likecount+=1
-                        }
-                        ref.child("likeCount").setValue(likecount)
+
                     }) {
                         Row {
-                            if(isLiked){
+                            if(CurrentImageName!=""&&isLiked){
                                 Icon(imageVector = Icons.Filled.Favorite, contentDescription = null, tint = Color.Red)
                             }else{
                                 Icon(imageVector = Icons.Filled.Favorite, contentDescription = null, tint = Color.White)
