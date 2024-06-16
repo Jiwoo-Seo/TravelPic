@@ -9,6 +9,7 @@ import com.google.gson.reflect.TypeToken
 @Entity(tableName = "album_codes")
 data class AlbumCode(
     @PrimaryKey val code: String,
-    val name: String
+    val name: String,
+    val likelist: List<String> = mutableListOf()
 )
 

@@ -1,17 +1,21 @@
 package com.example.travelpic.userAlbumViewModel
 
+import android.system.Os.remove
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.example.travelpic.data.Picture
 import com.example.travelpic.roomDB.AlbumCode
 import com.example.travelpic.roomDB.AlbumCodeDao
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class UserAlbumRepository(private val albumCodeDao: AlbumCodeDao) {
 
@@ -24,6 +28,37 @@ class UserAlbumRepository(private val albumCodeDao: AlbumCodeDao) {
     }
 
     fun getAllAlbumCodes(): Flow<List<AlbumCode>> = albumCodeDao.getAllAlbumCodes()
+
+    suspend fun isImageInLikelist(albumCode: String, imageName: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            val albumCodeEntity = albumCodeDao.getAlbumCode(albumCode)
+            albumCodeEntity?.likelist?.contains(imageName) ?: false
+        }
+    }
+
+    suspend fun addImageToLikelist(albumCode: String, imageName: String) {
+        withContext(Dispatchers.IO) {
+            val albumCodeEntity = albumCodeDao.getAlbumCode(albumCode)
+            if (albumCodeEntity != null) {
+                val updatedLikelist = albumCodeEntity.likelist.toMutableList().apply {
+                    if (!contains(imageName)) add(imageName)
+                }
+                albumCodeDao.updateLikelist(albumCode, updatedLikelist)
+            }
+        }
+    }
+
+    suspend fun removeImageFromLikelist(albumCode: String, imageName: String) {
+        withContext(Dispatchers.IO) {
+            val albumCodeEntity = albumCodeDao.getAlbumCode(albumCode)
+            if (albumCodeEntity != null) {
+                val updatedLikelist = albumCodeEntity.likelist.toMutableList().apply {
+                    remove(imageName)
+                }
+                albumCodeDao.updateLikelist(albumCode, updatedLikelist)
+            }
+        }
+    }
 }
 
 class UserAlbumViewModelFactory(private val repository: UserAlbumRepository) : ViewModelProvider.Factory {
@@ -62,4 +97,35 @@ class UserAlbumViewModelFactory(private val repository: UserAlbumRepository) : V
             getAllAlbumCodes()
         }
     }
+
+
+    suspend fun isImageInLikelist(albumCode: String, imageName: String): Boolean {
+        return repository.isImageInLikelist(albumCode, imageName)
+    }
+
+    fun toggleImageInLikelist(albumCode: String, imageName: String, onCompletion: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val isInLikelist = repository.isImageInLikelist(albumCode, imageName)
+            if (isInLikelist) {
+                repository.removeImageFromLikelist(albumCode, imageName)
+            } else {
+                repository.addImageToLikelist(albumCode, imageName)
+            }
+            onCompletion(!isInLikelist)
+        }
+    }
+
+    fun addImageToLikelist(albumCode: String, imageName: String) {
+        viewModelScope.launch {
+            repository.addImageToLikelist(albumCode, imageName)
+        }
+    }
+
+    fun removeImageFromLikelist(albumCode: String, imageName: String) {
+        viewModelScope.launch {
+            repository.removeImageFromLikelist(albumCode, imageName)
+        }
+    }
+
+
 }

@@ -101,7 +101,7 @@ suspend fun uploadImageToFirebase(uri: Uri, albumCode: String, context: android.
     val storageReference = Firebase.storage.reference
     val key = Firebase.database.reference.child("AlbumList/$albumCode/pictures").push().key
     Log.i("imagetag", "$key")
-    val imageReference = storageReference.child("images/$albumCode/$key")
+    val imageReference = storageReference.child("images/$albumCode/${key.toString()}")
 
     try {
         // Upload image to Firebase Storage
@@ -113,6 +113,7 @@ suspend fun uploadImageToFirebase(uri: Uri, albumCode: String, context: android.
         // Create Picture object with Exif information and download URL
         val picture = parseExifInfo(getExifInfo(context, uri))
         picture.imageUrl = downloadUrl.toString()
+        picture.key = key.toString()
 
         // Save the Picture object to Firebase Realtime Database
         key?.let {

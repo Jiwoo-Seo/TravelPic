@@ -18,9 +18,9 @@ interface AlbumCodeDao {
     @Query("SELECT * FROM album_codes")
     fun getAllAlbumCodes(): Flow<List<AlbumCode>>
 
-//    @Query("UPDATE album_codes SET likelist = likelist || :imageName WHERE code = :albumCode")
-//    suspend fun addImageToLikelist(albumCode: String, imageName: String)
-//
-//    @Query("UPDATE album_codes SET likelist = REPLACE(likelist, :imageName, '') WHERE code = :albumCode")
-//    suspend fun removeImageFromLikelist(albumCode: String, imageName: String)
+    @Query("SELECT * FROM album_codes WHERE code = :albumCode")
+    suspend fun getAlbumCode(albumCode: String): AlbumCode?
+
+    @Query("UPDATE album_codes SET likelist = :likelist WHERE code = :albumCode")
+    suspend fun updateLikelist(albumCode: String, likelist: List<String>)
 }
