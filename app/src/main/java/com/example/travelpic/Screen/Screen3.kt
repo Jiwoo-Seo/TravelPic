@@ -1,7 +1,17 @@
 package com.example.travelpic.Screen
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,8 +45,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -54,8 +66,15 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -73,6 +92,9 @@ fun Screen3(
     // MutableState 리스트로 이미지 URL 저장
     var imageUrls by remember { mutableStateOf(listOf<String>()) }
     var imageNames by remember { mutableStateOf(listOf<String>()) }
+
+    val context= LocalContext.current
+
 
     // 이미지 리스트 가져오기
 //    LaunchedEffect(Unit) {
@@ -140,6 +162,16 @@ fun Screen3(
     //val image: Painter = painterResource(id = currentImageUrl) // 이미지 리소스
     var memo by remember { mutableStateOf("") }
     var likecount by remember { mutableStateOf(0) }
+
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            coroutineScope.launch {
+                downloadAndSaveImage(context, storageCurrentImageUrl)
+            }
+        }
+    )
+
     if (showNoteDialog&&CurrentImageName!="") {
         ref.child("memo").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -186,7 +218,19 @@ fun Screen3(
                         .fillMaxWidth()
                         .padding(10.dp)
                 ) {
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = {
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            coroutineScope.launch {
+                                downloadAndSaveImage(context, storageCurrentImageUrl)
+                            }
+                        } else {
+                            storagePermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        }
+                    }) {
                         Icon(imageVector = Icons.Filled.Download, contentDescription = null, tint = Color.White)
                     }
                     IconButton(onClick = { if(CurrentImageName!="")showNoteDialog = true }) {
@@ -260,5 +304,51 @@ fun Screen3(
                 }
             }
         }
+    }
+}
+
+suspend fun downloadAndSaveImage(context: Context, imageUrl: String) {
+    val storage = FirebaseStorage.getInstance()
+    val storageRef = storage.getReferenceFromUrl(imageUrl)
+
+    try {
+        val localFile = withContext(Dispatchers.IO) {
+            val file = File.createTempFile("images", "jpg")
+            storageRef.getFile(file).await()
+            file
+        }
+
+        val bitmap = BitmapFactory.decodeFile(localFile.absolutePath)
+        saveImageToGallery(context, bitmap)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Toast.makeText(context, "이미지를 다운로드하는 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+    }
+}
+
+fun saveImageToGallery(context: Context, bitmap: Bitmap) {
+    val filename = "${System.currentTimeMillis()}.jpg"
+    val fos: OutputStream?
+    val resolver = context.contentResolver
+
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
+        }
+
+        val imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+        fos = resolver.openOutputStream(imageUri!!)
+    } else {
+        val imagesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        val image = File(imagesDir, filename)
+        fos = FileOutputStream(image)
+    }
+
+    fos.use {
+        if(it!=null)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+        Toast.makeText(context, "이미지가 갤러리에 저장되었습니다.", Toast.LENGTH_SHORT).show()
     }
 }
