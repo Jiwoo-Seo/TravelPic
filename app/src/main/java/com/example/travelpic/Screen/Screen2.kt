@@ -2,10 +2,14 @@ package com.example.travelpic.Screen
 
 import android.Manifest
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -57,6 +61,7 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
     val backgroundImage: Painter = painterResource(id = R.drawable.background_image)
     var showLocationDialog by remember { mutableStateOf(false) }
     var showPictureClassificationDialog by remember { mutableStateOf(false) }
+    var showAlbumCodeDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -154,7 +159,9 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                 }
 
                 highlightAlbumMenu(navController, albumViewModel)
-                ActionButton(icon = Icons.Default.PersonAddAlt, text = "친구 초대")
+                ActionButton(icon = Icons.Default.PersonAddAlt, text = "친구 초대"){
+                    showAlbumCodeDialog=true
+                }
             }
         }
     }
@@ -204,6 +211,38 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
             onDismiss = { showPictureClassificationDialog = false },
             repository = repository,
             navController = navController
+        )
+    }
+
+    if (showAlbumCodeDialog) {
+        AlertDialog(
+            onDismissRequest = { showAlbumCodeDialog = false },
+            title = { Text("앨범 초대코드") },
+            text = {
+                Column {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = navViewModel.albumcode,
+                        onValueChange = { }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("album code", navViewModel.albumcode)
+                    clipboard.setPrimaryClip(clip)
+                    // 사용자에게 복사되었음을 알리기 위해 Toast 등을 사용할 수 있음
+                    Toast.makeText(context, "코드가 클립보드에 복사되었습니다.", Toast.LENGTH_SHORT).show()
+                }) {
+                    Text("코드 복사")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showAlbumCodeDialog = false }) {
+                    Text("확인")
+                }
+            }
         )
     }
 }
