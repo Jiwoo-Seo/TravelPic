@@ -1,6 +1,7 @@
 package com.example.travelpic.Screen
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -10,8 +11,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,6 +34,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import java.util.Random
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAlbumViewModel: UserAlbumViewModel) {
     val albums by userAlbumViewModel.userAlbumCodes.collectAsState(initial = emptyList())
@@ -39,9 +43,8 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
     var showDialog by remember { mutableStateOf(false) }
     var showJoinDialog by remember { mutableStateOf(false) }
     var albumName by remember { mutableStateOf("") }
-    var albumCode by remember { mutableStateOf("") }
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
-
+    val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -152,6 +155,8 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
         )
     }
     if (showJoinDialog) {
+        var albumCode by remember { mutableStateOf("") }
+        var isError by remember { mutableStateOf(false) }
         AlertDialog(
             onDismissRequest = { showJoinDialog = false },
             title = { Text("앨범 참여하기") },
@@ -162,6 +167,10 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
                     OutlinedTextField(
                         value = albumCode,
                         onValueChange = { albumCode = it },
+                        isError = isError,
+                        colors = TextFieldDefaults.textFieldColors(
+                            errorIndicatorColor = Color.Red, // 오류 상태일 때 테두리 색상
+                        ),
                         label = { Text("앨범 코드") }
                     )
                 }
@@ -186,6 +195,9 @@ fun Screen1(navController: NavController, albumViewModel: AlbumViewModel, userAl
                         } else {
                             // 데이터가 없는 경우 처리
                             Log.i("Firebase", "Data does not exist")
+                            isError = true
+                            Toast.makeText(context, "****올바른 앨범 코드를 입력해주세요****", Toast.LENGTH_SHORT).show()
+
                         }
                     }.addOnFailureListener { exception ->
                         // 데이터를 가져오는 도중 에러가 발생한 경우 처리

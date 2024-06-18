@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -62,7 +63,7 @@ fun AlbumCard(
                     nav.navigate("screen2") }
         ) {
             Text(modifier = Modifier.padding(5.dp), text = albumCode.name)
-            Icon(imageVector = Icons.Default.Settings, contentDescription = null, modifier = Modifier.padding(5.dp).clickable {
+            Icon(imageVector = Icons.Default.Delete, contentDescription = null, modifier = Modifier.padding(5.dp).clickable {
                 userAlbumViewModel.removeAlbumCode(albumCode)
             })
 

@@ -11,7 +11,6 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.PersonAddAlt
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.UploadFile
@@ -34,8 +34,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.travelpic.LocalNavGraphViewModelStoreOwner
 import com.example.travelpic.PictureClassification.PictureClassificationDialog
 import com.example.travelpic.R
@@ -46,12 +48,16 @@ import com.example.travelpic.highlightAlbumMenu
 import com.example.travelpic.navViewmodel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
 import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalNaverMapApi::class)
@@ -63,10 +69,51 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
     var showPictureClassificationDialog by remember { mutableStateOf(false) }
     var showAlbumCodeDialog by remember { mutableStateOf(false) }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val repository = FirebaseAlbumRepository(Firebase.database.getReference("AlbumList"))
 
+    val dbref = Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/pictures")
+    // MutableState 리스트로 이미지 URL 저장
+    var imageUrls by remember { mutableStateOf(listOf<String>()) }
+    var imageNames by remember { mutableStateOf(listOf<String>()) }
+    LaunchedEffect(Unit) {
+        dbref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    imageNames = emptyList()
+                    imageUrls = emptyList()
+                    for (snapshot in dataSnapshot.children) {
+                        val imagekey = snapshot.child("key").getValue(String::class.java)
+                        val imageUrl = snapshot.child("imageUrl").getValue(String::class.java)
+
+                        Log.i("imagenow",imageUrl.toString())
+                        Log.i("imagenow",imagekey.toString())
+                        if (imagekey != null && imageUrl != null) {
+                            imageNames += imagekey
+                            imageUrls += imageUrl
+                            Log.i("imagenow", "추가완료${ imagekey.toString() }")
+                        }
+                    }
+
+                } else {
+                    println("No data available")
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                println("Error: ${databaseError.message}")
+            }
+        })
+    }
+    CircularProgressIndicator(modifier = Modifier.size(60.dp), color = Color.White)
+    imageUrls.forEachIndexed { index, imageUrl ->
+        Image(painter = rememberAsyncImagePainter(model = imageUrl),
+            contentDescription = null,
+            modifier = Modifier.size(1.dp)
+        )
+    }
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         rememberMultiplePermissionsState(
             permissions = listOf(
@@ -95,8 +142,12 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                     try {
                         uploadImageToFirebase(uri, navViewModel.albumcode, context, repository)
                         Log.i("DEBUG", "Image uploaded successfully: $uri")
+
                     } catch (e: Exception) {
                         Log.e("Upload Error", "Failed to upload image", e)
+                        delay(1)
+                        Toast.makeText(context, "****사진 업로드를 실패하였습니다****", Toast.LENGTH_SHORT).show()
+
                     }
                 }
             }
@@ -119,6 +170,7 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
         ) {
             Text(
                 text = navViewModel.albumname,
+                style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier
                     .padding(16.dp)
                     .clickable { navController.navigate("screen3") }
@@ -221,28 +273,47 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
             text = {
                 Column {
                     Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = navViewModel.albumcode,
-                        onValueChange = { }
-                    )
+                    Row (horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 15.dp)){
+                        Text(text = navViewModel.albumcode, fontSize = 20.sp, modifier = Modifier.weight(1f))
+                        Icon(imageVector = Icons.Default.ContentCopy,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .clickable(onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("album code", navViewModel.albumcode)
+                                    clipboard.setPrimaryClip(clip)
+                                    // 사용자에게 복사되었음을 알리기 위해 Toast 등을 사용할 수 있음
+                                    Toast.makeText(context, "코드가 클립보드에 복사되었습니다.", Toast.LENGTH_SHORT).show()
+                                })
+                                .size(24.dp))
+                    }
+//                    OutlinedTextField(
+//                        value = navViewModel.albumcode,
+//                        onValueChange = { }
+//                    )
                 }
             },
             confirmButton = {
-                Button(onClick = {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText("album code", navViewModel.albumcode)
-                    clipboard.setPrimaryClip(clip)
-                    // 사용자에게 복사되었음을 알리기 위해 Toast 등을 사용할 수 있음
-                    Toast.makeText(context, "코드가 클립보드에 복사되었습니다.", Toast.LENGTH_SHORT).show()
-                }) {
-                    Text("코드 복사")
-                }
-            },
-            dismissButton = {
                 Button(onClick = { showAlbumCodeDialog = false }) {
                     Text("확인")
                 }
+//                Button(onClick = {
+//                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+//                    val clip = ClipData.newPlainText("album code", navViewModel.albumcode)
+//                    clipboard.setPrimaryClip(clip)
+//                    // 사용자에게 복사되었음을 알리기 위해 Toast 등을 사용할 수 있음
+//                    Toast.makeText(context, "코드가 클립보드에 복사되었습니다.", Toast.LENGTH_SHORT).show()
+//                }) {
+//                    Text("코드 복사")
+//                }
             }
+//            dismissButton = {
+//                Button(onClick = { showAlbumCodeDialog = false }) {
+//                    Text("확인")
+//                }
+//            }
         )
     }
 }

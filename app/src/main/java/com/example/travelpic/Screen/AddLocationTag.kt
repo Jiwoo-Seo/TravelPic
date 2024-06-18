@@ -3,17 +3,26 @@
 package com.example.travelpic.Screen
 
 import android.location.Geocoder
+import android.location.Location.distanceBetween
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.travelpic.LocalNavGraphViewModelStoreOwner
+import com.example.travelpic.R
 import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel
 import com.example.travelpic.data.FirebaseAlbumRepository
@@ -36,6 +45,7 @@ fun AddLocationTag(
 ) {
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val albumCode = navViewModel.albumcode // 앨범 코드를 가져옴
+    val backgroundImage: Painter = painterResource(id = R.drawable.background_image) // 배경 이미지 리소스
     val context = LocalContext.current
     val repository = FirebaseAlbumRepository(Firebase.database.getReference("AlbumList"))
     var address by remember { mutableStateOf("") }
@@ -50,102 +60,127 @@ fun AddLocationTag(
     val markerState = rememberMarkerState(position = location)
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        OutlinedTextField(
-            value = address,
-            onValueChange = { address = it },
-            label = { Text("주소 입력") },
-            modifier = Modifier.fillMaxWidth()
+    Box(modifier = Modifier
+        .fillMaxSize()
+    ) {
+        Image(
+            painter = backgroundImage,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Button(onClick = {
-                coroutineScope.launch {
-                    val (newLocation, newAddress) = searchAddress(context, address, location)
-                    location = newLocation
-                    detailedAddress = newAddress
-                    cameraPositionState.move(CameraUpdate.scrollTo(newLocation))
-                    markerState.position = newLocation
-                }
-            }) {
-                Text("검색")
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = {
-                showDialog = true
-            }) {
-                Text("위치태그 추가")
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "검색된 주소: $detailedAddress", modifier = Modifier.padding(8.dp))
-        NaverMap(
-            modifier = Modifier.weight(1f),
-            cameraPositionState = cameraPositionState
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)
+                .background(Color(0xE0FFFFFF), RoundedCornerShape(8.dp))
         ) {
-            Marker(
-                state = markerState,
-                captionText = detailedAddress
-            )
-        }
-    }
 
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("위치태그 추가") },
-            text = { Text("${detailedAddress}를 위치태그에 추가하시겠습니까?") },
-            confirmButton = {
-                Button(onClick = {
-                    showDialog = false
-                    showInputDialog = true
-                }) {
-                    Text("확인")
+            Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text("주소 입력") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = {
+                        coroutineScope.launch {
+                            val (newLocation, newAddress) = searchAddress(
+                                context,
+                                address,
+                                location
+                            )
+                            location = newLocation
+                            detailedAddress = newAddress
+                            cameraPositionState.move(CameraUpdate.scrollTo(newLocation))
+                            markerState.position = newLocation
+                        }
+                    }) {
+                        Text("검색")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = {
+                        showDialog = true
+                    }) {
+                        Text("위치태그 추가")
+                    }
                 }
-            },
-            dismissButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text("취소")
-                }
-            }
-        )
-    }
-
-    if (showInputDialog) {
-        AlertDialog(
-            onDismissRequest = { showInputDialog = false },
-            title = { Text("위치태그 이름 입력") },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = locationTagName,
-                        onValueChange = { locationTagName = it },
-                        label = { Text("위치태그 이름") }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "검색된 주소: $detailedAddress", modifier = Modifier.padding(8.dp))
+                NaverMap(
+                    modifier = Modifier.weight(1f),
+                    cameraPositionState = cameraPositionState
+                ) {
+                    Marker(
+                        state = markerState,
+                        captionText = detailedAddress
                     )
                 }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    coroutineScope.launch {
-                        val albumCode = navViewModel.albumcode
-                        if (locationTagName.isNotBlank() && albumCode != null) {
-                            repository.addLocationTagToAlbum(albumCode, locationTagName, detailedAddress)
-                            showInputDialog = false
-                            navController.navigateUp()
+            }
+
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    title = { Text("위치태그 추가") },
+                    text = { Text("${detailedAddress}를 위치태그에 추가하시겠습니까?") },
+                    confirmButton = {
+                        Button(onClick = {
+                            showDialog = false
+                            showInputDialog = true
+                        }) {
+                            Text("확인")
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showDialog = false }) {
+                            Text("취소")
                         }
                     }
-                }) {
-                    Text("확인")
-                }
-            },
-            dismissButton = {
-                Button(onClick = { showInputDialog = false }) {
-                    Text("취소")
-                }
+                )
             }
-        )
-    }
 
+            if (showInputDialog) {
+                AlertDialog(
+                    onDismissRequest = { showInputDialog = false },
+                    title = { Text("위치태그 이름 입력") },
+                    text = {
+                        Column {
+                            OutlinedTextField(
+                                value = locationTagName,
+                                onValueChange = { locationTagName = it },
+                                label = { Text("위치태그 이름") }
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(onClick = {
+                            coroutineScope.launch {
+                                val albumCode = navViewModel.albumcode
+                                if (locationTagName.isNotBlank() && albumCode != null) {
+                                    repository.addLocationTagToAlbum(
+                                        albumCode,
+                                        locationTagName,
+                                        detailedAddress
+                                    )
+                                    showInputDialog = false
+                                    navController.navigateUp()
+                                }
+                            }
+                        }) {
+                            Text("확인")
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = { showInputDialog = false }) {
+                            Text("취소")
+                        }
+                    }
+                )
+            }
+        }
+    }
 }
 
 suspend fun searchAddress(context: android.content.Context, query: String, currentLocation: LatLng): Pair<LatLng, String> {
