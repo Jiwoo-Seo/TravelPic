@@ -26,8 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,23 +46,28 @@ import com.google.firebase.database.database
 
 @Composable
 fun Screen6(navController: NavController, albumViewModel: AlbumViewModel) {
+    val backgroundImage: Painter = painterResource(id = R.drawable.background_image) // 배경 이미지 리소스
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     val hlTable = Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/highlight")
     var hlUrls by remember { mutableStateOf(listOf<String>()) }
     var hlNames by remember { mutableStateOf(listOf<String>()) }
+    var hlDates by remember { mutableStateOf(listOf<String>()) }
     LaunchedEffect(Unit) {
         hlTable.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
                     hlUrls = emptyList()
                     hlNames = emptyList()
+                    hlDates = emptyList()
                     for (snapshot in dataSnapshot.children) {
                         val hlName = snapshot.child("name").getValue(String::class.java)
+                        val hlDate = snapshot.child("date").getValue(String::class.java)?:"Unknown"
                         for (snapshotshot in snapshot.children){
                             val url = snapshotshot.getValue(String::class.java)
                             if(hlName != null&& url!=hlName){
                                 hlUrls += url.toString()
                                 hlNames += hlName
+                                hlDates += hlDate
                                 break
                             }
                         }
@@ -76,10 +84,21 @@ fun Screen6(navController: NavController, albumViewModel: AlbumViewModel) {
             }
         })
     }
-    AlbumList(hlNames, hlUrls,navController)
+
+    Box(modifier = Modifier
+        .fillMaxSize()){
+        Image(
+            painter = backgroundImage,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    }
+    AlbumList(hlNames, hlDates, hlUrls, navController)
+
 }
 @Composable
-fun AlbumList(hlNames: List<String>, hlUrls: List<String>,navController:NavController) {
+fun AlbumList(hlNames: List<String>, hlDates: List<String>, hlUrls: List<String>,navController:NavController) {
     Column(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
@@ -88,11 +107,12 @@ fun AlbumList(hlNames: List<String>, hlUrls: List<String>,navController:NavContr
         horizontalAlignment = Alignment.CenterHorizontally
         ) {
         Text(text = "하이라이트 앨범 목록", fontSize = 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(10.dp))
+        Spacer(modifier = Modifier.height(15.dp))
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
             items(hlNames.indices.toList()) { index ->
-                AlbumItem(name = hlNames[index], imageUrl = hlUrls[index],navController)
+                AlbumItem(name = hlNames[index], date = hlDates[index],imageUrl = hlUrls[index],navController)
                 Spacer(modifier = Modifier.height(10.dp))
             }
         }
@@ -100,7 +120,7 @@ fun AlbumList(hlNames: List<String>, hlUrls: List<String>,navController:NavContr
 }
 
 @Composable
-fun AlbumItem(name: String, imageUrl: String,navController:NavController) {
+fun AlbumItem(name: String, date:String, imageUrl: String,navController:NavController) {
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
     Box(
         modifier = Modifier
@@ -110,7 +130,8 @@ fun AlbumItem(name: String, imageUrl: String,navController:NavController) {
             .clickable {
                 navViewModel.hlname = name
                 navViewModel.newHighlight = false
-                navController.navigate("screen5") }
+                navController.navigate("screen5")
+            }
     ) {
         Row(
             modifier = Modifier
@@ -120,16 +141,27 @@ fun AlbumItem(name: String, imageUrl: String,navController:NavController) {
             Image(
                 painter = rememberAsyncImagePainter(model = imageUrl),
                 contentDescription = name,
-                modifier = Modifier.size(128.dp),
+                modifier = Modifier
+                    .size(128.dp)
+                    .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "앨범 이름 : "+name,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(10.dp)
-            )
+            Column {
+                Text(
+                    text = "앨범 이름 : "+name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(10.dp)
+                )
+                Text(
+                    text = "생성 일자 : "+date,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(10.dp)
+                )
+            }
+
         }
     }
 }

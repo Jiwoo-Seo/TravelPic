@@ -1,8 +1,8 @@
 package com.example.travelpic.data
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,23 +11,21 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.example.travelpic.getExifInfo
 import com.example.travelpic.parseExifInfo
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.core.Context
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 
 //파이어베이스에 앨범에 사진 저장
@@ -96,12 +94,26 @@ import kotlinx.coroutines.tasks.await
 //        Log.e("Upload Error", "Failed to upload image", e)
 //    }
 //}
+class AppLifecycleObserver(
+    private val onForeground: () -> Unit
+) : DefaultLifecycleObserver {
 
-suspend fun uploadImageToFirebase(uri: Uri, albumCode: String, context: android.content.Context, repository: FirebaseAlbumRepository) {
+    override fun onStart(owner: LifecycleOwner) {
+        super.onStart(owner)
+        onForeground()
+    }
+}
+suspend fun uploadImageToFirebase(
+    uri: Uri,
+    albumCode: String,
+    context: android.content.Context,
+    repository: FirebaseAlbumRepository
+) {
     val storageReference = Firebase.storage.reference
     val key = Firebase.database.getReference("AlbumList/$albumCode/pictures").push().key
     Log.i("imagetag", "$key")
     val imageReference = storageReference.child("images/$albumCode/${key.toString()}")
+
 
     try {
         // Upload image to Firebase Storage
@@ -121,8 +133,13 @@ suspend fun uploadImageToFirebase(uri: Uri, albumCode: String, context: android.
         }
 
         Log.i("imagetag", "Image uploaded and saved successfully")
+        delay(1)
+        Toast.makeText(context, "사진 업로드를 성공하였습니다", Toast.LENGTH_SHORT).show()
+
     } catch (e: Exception) {
         Log.e("Upload Error", "Failed to upload image", e)
+        delay(1)
+        Toast.makeText(context, "****사진 업로드를 실패하였습니다****", Toast.LENGTH_SHORT).show()
     }
 }
 
