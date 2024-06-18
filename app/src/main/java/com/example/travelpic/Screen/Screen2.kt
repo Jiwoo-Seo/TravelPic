@@ -170,6 +170,7 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
         ) {
             Text(
                 text = navViewModel.albumname,
+                style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier
                     .padding(16.dp)
                     .clickable { navController.navigate("screen3") }

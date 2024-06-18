@@ -1,6 +1,8 @@
 package com.example.travelpic
 
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -34,6 +37,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.unit.max
@@ -56,6 +63,7 @@ import kotlin.math.max
 
 @Composable
 fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
+    val backgroundImage: Painter = painterResource(id = R.drawable.background_image) // 배경 이미지 리소스
     var selectedTags by remember { mutableStateOf(setOf<String>()) }
     var newHighlightAlbumName by remember { mutableStateOf("")}
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
@@ -130,80 +138,92 @@ fun Screen4(navController: NavController, albumViewModel: AlbumViewModel) {
     val scrollState = rememberScrollState()
     Box(modifier = Modifier
         .fillMaxSize()
-        .padding(5.dp)){
-        Column(
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = "하이라이트 앨범 설정", fontSize = 25.sp, fontWeight = Bold, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
-            Text(text = "최소 좋아요 개수 : ${slider_Like.toInt()}개", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
-            Slider(
-                value = slider_Like.toFloat(),
-                onValueChange = { slider_Like = it.toInt() },
-                valueRange = 0f..maxLike.toFloat(),
-                steps = maxLike,
-                modifier = Modifier.width(350.dp)
-            )
-            Divider(modifier = Modifier.padding(5.dp))
-            Text(text = "앨범에 담을 사진 : 최대 ${slider_PictureCount}장", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
-            Slider(
-                value = slider_PictureCount.toFloat(),
-                onValueChange = { slider_PictureCount = it.toInt() },
-                valueRange = 0f..imageNames.size.toFloat(),
-                steps = imageNames.size,
-                modifier = Modifier.width(350.dp)
-            )
-            Divider(modifier = Modifier.padding(5.dp))
-            Text(text = "위치 태그", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
+        ){
+        Image(
+            painter = backgroundImage,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp)
+            .background(Color(0xE0FFFFFF), RoundedCornerShape(8.dp))){
             Column(
-                modifier = Modifier.fillMaxWidth().verticalScroll(scrollState)
-                    .height(500.dp)
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                locationTagsList.forEach { tag ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = selectedTags.contains(tag),
-                            onCheckedChange = { isChecked ->
-                                if (isChecked) {
-                                    selectedTags = selectedTags + tag
-                                } else {
-                                    selectedTags = selectedTags - tag
-                                }
-                            }
-                        )
-                        Text(text = tag)
-                    }
-                }
-
-
-            }
-            Row (horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically){
-                TextField(
-                    value = newHighlightAlbumName,
-                    onValueChange = { newHighlightAlbumName = it},
-                    label = { Text("앨범이름")},
+                Text(text = "하이라이트 앨범 설정", fontSize = 25.sp, fontWeight = Bold, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
+                Text(text = "최소 좋아요 개수 : ${slider_Like.toInt()}개", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
+                Slider(
+                    value = slider_Like.toFloat(),
+                    onValueChange = { slider_Like = it.toInt() },
+                    valueRange = 0f..maxLike.toFloat(),
+                    steps = maxLike,
                     modifier = Modifier.width(300.dp)
                 )
-                Icon(imageVector = Icons.Default.ArrowCircleRight,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(5.dp,0.dp,0.dp,0.dp)
-                        .width(50.dp)
-                        .height(50.dp)
-                        .clickable{
-                            navViewModel.hlname = newHighlightAlbumName
-                            navViewModel.maxlike = slider_Like.toInt()
-                            navViewModel.maxcount = slider_PictureCount.toInt()
-                            navViewModel.selectedTags = selectedTags
-                            navViewModel.newHighlight = true
-                            navController.navigate("screen5")
-                        } )
-            }
+                Divider(modifier = Modifier.padding(5.dp))
+                Text(text = "앨범에 담을 사진 : 최대 ${slider_PictureCount}장", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
+                Slider(
+                    value = slider_PictureCount.toFloat(),
+                    onValueChange = { slider_PictureCount = it.toInt() },
+                    valueRange = 0f..imageNames.size.toFloat(),
+                    steps = imageNames.size,
+                    modifier = Modifier.width(300.dp)
+                )
+                Divider(modifier = Modifier.padding(5.dp))
+                Text(text = "위치 태그", fontSize = 20.sp, modifier = Modifier.padding(0.dp,5.dp,0.dp,0.dp))
+                Column(
+                    modifier = Modifier.fillMaxWidth().verticalScroll(scrollState)
+                        .height(500.dp)
+                ) {
+                    locationTagsList.forEach { tag ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = selectedTags.contains(tag),
+                                onCheckedChange = { isChecked ->
+                                    if (isChecked) {
+                                        selectedTags = selectedTags + tag
+                                    } else {
+                                        selectedTags = selectedTags - tag
+                                    }
+                                }
+                            )
+                            Text(text = tag)
+                        }
+                    }
 
+
+                }
+                Row (horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically){
+                    TextField(
+                        value = newHighlightAlbumName,
+                        onValueChange = { newHighlightAlbumName = it},
+                        label = { Text("앨범이름")},
+                        modifier = Modifier.width(300.dp)
+                    )
+                    Icon(imageVector = Icons.Default.ArrowCircleRight,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(5.dp,0.dp,0.dp,0.dp)
+                            .width(50.dp)
+                            .height(50.dp)
+                            .clickable{
+                                navViewModel.hlname = newHighlightAlbumName
+                                navViewModel.maxlike = slider_Like.toInt()
+                                navViewModel.maxcount = slider_PictureCount.toInt()
+                                navViewModel.selectedTags = selectedTags
+                                navViewModel.newHighlight = true
+                                navController.navigate("screen5")
+                            } )
+                }
+
+            }
         }
+
     }
 }
