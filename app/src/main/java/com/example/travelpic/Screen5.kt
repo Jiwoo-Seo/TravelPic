@@ -183,7 +183,6 @@ fun Screen5(navController: NavController, albumViewModel: AlbumViewModel) {
                     navViewModel.maxlike = 0
                     navViewModel.maxcount = 0
                     navViewModel.selectedTags = emptyList<String>().toSet()
-                    navViewModel.newHighlight = false
                     navController.navigate("screen2") {
                         popUpTo("screen2") { inclusive = true }
                     }

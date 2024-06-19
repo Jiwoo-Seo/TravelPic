@@ -49,7 +49,7 @@ fun PictureClassificationDialog(
                             selected = selectedTag == tag,
                             onClick = { selectedTag = tag }
                         )
-                        Text(text = "$tag ($address)")
+                        Text(text = "$tag")
                     }
                 }
             }
