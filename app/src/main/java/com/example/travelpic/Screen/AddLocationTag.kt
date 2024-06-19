@@ -107,14 +107,12 @@ fun AddLocationTag(
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "검색된 주소: ${location.latitude}, ${location.longitude}", modifier = Modifier.padding(8.dp))
                 NaverMap(
                     modifier = Modifier.weight(1f),
                     cameraPositionState = cameraPositionState
                 ) {
                     Marker(
-                        state = markerState,
-                        captionText = "${location.latitude}, ${location.longitude}"
+                        state = markerState
                     )
                 }
             }
@@ -123,7 +121,7 @@ fun AddLocationTag(
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
                     title = { Text("위치태그 추가") },
-                    text = { Text("${location.latitude}, ${location.longitude} 를 위치태그에 추가하시겠습니까?") },
+                    text = { Text("해당취치를 위치태그에 추가하시겠습니까?") },
                     confirmButton = {
                         Button(onClick = {
                             showDialog = false

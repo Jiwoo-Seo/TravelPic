@@ -10,9 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImagePainter.State.Empty.painter
 import coil.compose.rememberAsyncImagePainter
+import com.example.travelpic.R
 import com.example.travelpic.data.FirebaseAlbumRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,7 +31,7 @@ fun LocationTagImagesScreen(navController: NavController, tagName: String, repos
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text(tagName) },
+            title = { Text("${tagName} 위치태그 앨범")},
             navigationIcon = {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
