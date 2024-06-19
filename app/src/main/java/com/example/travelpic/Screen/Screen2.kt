@@ -6,6 +6,8 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -38,6 +40,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
 import com.example.travelpic.LocalNavGraphViewModelStoreOwner
 import com.example.travelpic.PictureClassification.PictureClassificationDialog
 import com.example.travelpic.R
@@ -53,12 +57,19 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
 import com.naver.maps.map.compose.MapUiSettings
+import com.naver.maps.map.compose.Marker
+import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
+import com.naver.maps.map.overlay.OverlayImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.bumptech.glide.request.transition.Transition
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalNaverMapApi::class)
 @Composable
@@ -74,10 +85,22 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
     val scope = rememberCoroutineScope()
     val repository = FirebaseAlbumRepository(Firebase.database.getReference("AlbumList"))
 
+    // 상태를 저장할 MutableState
+    var latLngWithImageList by remember { mutableStateOf<Map<String, Triple<LatLng, String, String>>>(emptyMap()) }
+
+    // 데이터 가져오는 부분을 LaunchedEffect로 분리
+    LaunchedEffect(Unit) {
+        repository.getLocationTagsWithDetails(navViewModel.albumcode) { latLngsWithDetails ->
+            latLngWithImageList = latLngsWithDetails
+        }
+    }
+
     val dbref = Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/pictures")
+
     // MutableState 리스트로 이미지 URL 저장
     var imageUrls by remember { mutableStateOf(listOf<String>()) }
     var imageNames by remember { mutableStateOf(listOf<String>()) }
+
     LaunchedEffect(Unit) {
         dbref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -185,7 +208,34 @@ fun Screen2(navController: NavController, albumViewModel: AlbumViewModel) {
                 NaverMap(
                     cameraPositionState = cameraPositionState,
                     uiSettings = MapUiSettings(isZoomControlEnabled = false)
-                )
+                ){
+                    latLngWithImageList.forEach { (_, triple) ->
+                        val latLng = triple.first
+                        val imageUrl = triple.second
+                        val tagName = triple.third
+                        val markerState:MarkerState = MarkerState(position = latLng)
+                        var markerbitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+                        scope.launch {
+                            val bitmap:Bitmap? = getBitmapFromUrl(context, imageUrl)
+                            markerbitmap = bitmap
+                        }
+
+                        markerbitmap?.let {
+                            Marker(
+                                state = markerState,
+                                icon = OverlayImage.fromBitmap(it),
+                                width = 80.dp,
+                                height = 100.dp,
+                                onClick = {
+                                    navController.navigate("LocationTagImagesScreen/${tagName}")
+                                    true
+                                }
+                            )
+                        }
+                    }
+
+                }
             }
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -329,5 +379,21 @@ fun ActionButton(icon: ImageVector, text: String, onClick: () -> Unit = {}) {
                 .size(48.dp)
         )
         Text(text = text, fontSize = 12.sp)
+    }
+}
+
+
+suspend fun getBitmapFromUrl(context: Context, imageUrl: String): Bitmap? {
+    return withContext(Dispatchers.IO) {
+        try {
+            Glide.with(context)
+                .asBitmap()
+                .load(imageUrl)
+                .submit()
+                .get()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }

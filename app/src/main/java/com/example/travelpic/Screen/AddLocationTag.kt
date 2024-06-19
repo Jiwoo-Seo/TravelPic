@@ -3,7 +3,6 @@
 package com.example.travelpic.Screen
 
 import android.location.Geocoder
-import android.location.Location.distanceBetween
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,8 +26,8 @@ import com.example.travelpic.data.AlbumViewModel
 import com.example.travelpic.userAlbumViewModel.UserAlbumViewModel
 import com.example.travelpic.data.FirebaseAlbumRepository
 import com.example.travelpic.navViewmodel
-import com.google.firebase.Firebase
-import com.google.firebase.database.database
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
 import com.naver.maps.map.CameraUpdate
@@ -50,7 +49,6 @@ fun AddLocationTag(
     val repository = FirebaseAlbumRepository(Firebase.database.getReference("AlbumList"))
     var address by remember { mutableStateOf("") }
     var location by remember { mutableStateOf(LatLng(37.5666102, 126.9783881)) }
-    var detailedAddress by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var showInputDialog by remember { mutableStateOf(false) }
     var locationTagName by remember { mutableStateOf("") }
@@ -76,7 +74,9 @@ fun AddLocationTag(
                 .background(Color(0xE0FFFFFF), RoundedCornerShape(8.dp))
         ) {
 
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)) {
                 OutlinedTextField(
                     value = address,
                     onValueChange = { address = it },
@@ -87,13 +87,12 @@ fun AddLocationTag(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Button(onClick = {
                         coroutineScope.launch {
-                            val (newLocation, newAddress) = searchAddress(
+                            val (newLocation, _) = searchAddress(
                                 context,
                                 address,
                                 location
                             )
                             location = newLocation
-                            detailedAddress = newAddress
                             cameraPositionState.move(CameraUpdate.scrollTo(newLocation))
                             markerState.position = newLocation
                         }
@@ -108,14 +107,14 @@ fun AddLocationTag(
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "검색된 주소: $detailedAddress", modifier = Modifier.padding(8.dp))
+                Text(text = "검색된 주소: ${location.latitude}, ${location.longitude}", modifier = Modifier.padding(8.dp))
                 NaverMap(
                     modifier = Modifier.weight(1f),
                     cameraPositionState = cameraPositionState
                 ) {
                     Marker(
                         state = markerState,
-                        captionText = detailedAddress
+                        captionText = "${location.latitude}, ${location.longitude}"
                     )
                 }
             }
@@ -124,7 +123,7 @@ fun AddLocationTag(
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
                     title = { Text("위치태그 추가") },
-                    text = { Text("${detailedAddress}를 위치태그에 추가하시겠습니까?") },
+                    text = { Text("${location.latitude}, ${location.longitude} 를 위치태그에 추가하시겠습니까?") },
                     confirmButton = {
                         Button(onClick = {
                             showDialog = false
@@ -159,10 +158,11 @@ fun AddLocationTag(
                             coroutineScope.launch {
                                 val albumCode = navViewModel.albumcode
                                 if (locationTagName.isNotBlank() && albumCode != null) {
+                                    val latLngString = "${location.latitude}, ${location.longitude}"
                                     repository.addLocationTagToAlbum(
                                         albumCode,
                                         locationTagName,
-                                        detailedAddress
+                                        latLngString
                                     )
                                     showInputDialog = false
                                     navController.navigateUp()

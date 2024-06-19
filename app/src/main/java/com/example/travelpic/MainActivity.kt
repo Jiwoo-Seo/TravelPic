@@ -25,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.travelpic.PictureClassification.ClassifyPicturesScreen
 import com.example.travelpic.Screen.AddLocationTag
+import com.example.travelpic.Screen.LocationTagImagesScreen
 import com.example.travelpic.Screen.Screen1
 import com.example.travelpic.Screen.Screen3
 import com.example.travelpic.data.AlbumViewModel
@@ -93,6 +94,60 @@ val LocalNavGraphViewModelStoreOwner =
     staticCompositionLocalOf<ViewModelStoreOwner> {
         error("Undefined")
     }
+//@Composable
+//fun TravelPicNavigator() {
+//    val context = LocalContext.current
+//    val table = Firebase.database.getReference("AlbumList")
+//    val albumViewModel: AlbumViewModel = viewModel(factory = AlbumViewModelFactory(FirebaseAlbumRepository(table)))
+//    val albumcodeDB = AlbumCodeDatabase.getItemDatabase(context)
+//    val userAlbumViewModel: UserAlbumViewModel =
+//        viewModel(factory = UserAlbumViewModelFactory(UserAlbumRepository(albumcodeDB.getDao())))
+//
+//    val navController = rememberNavController()
+//    val navStoreOwner = rememberViewModelStoreOwner()
+//    val repository = FirebaseAlbumRepository(table)
+//
+//    CompositionLocalProvider(
+//        LocalNavGraphViewModelStoreOwner provides navStoreOwner
+//    ) {
+//        val navViewModel: navViewmodel =
+//            viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
+//
+//        NavHost(navController = navController, startDestination = "screen1") {
+//            composable("screen1") { Screen1(navController, albumViewModel, userAlbumViewModel) }
+//            composable("screen2") { Screen2(navController, albumViewModel) }
+//            composable("screen3") { Screen3(navController, userAlbumViewModel) }
+//            composable("screen4") { Screen4(navController, albumViewModel) }
+//            composable("screen5") { Screen5(navController, albumViewModel) }
+//            composable("screen6") { Screen6(navController, albumViewModel) }
+//            composable("AddLocationTag") { AddLocationTag(navController, albumViewModel, userAlbumViewModel) }
+//            composable(
+//                route = "ClassifyPicturesScreen/{albumCode}/{locationTag}",
+//                arguments = listOf(
+//                    navArgument("albumCode") { type = NavType.StringType },
+//                    navArgument("locationTag") { type = NavType.StringType }
+//                )
+//            ) { backStackEntry ->
+//                val albumCode = backStackEntry.arguments?.getString("albumCode") ?: return@composable
+//                val locationTag = backStackEntry.arguments?.getString("locationTag") ?: return@composable
+//                ClassifyPicturesScreen(
+//                    albumCode = albumCode,
+//                    locationTag = locationTag,
+//                    navController = navController,
+//                    repository = FirebaseAlbumRepository(table)
+//                )
+//            }
+//            composable(
+//                "LocationTagImagesScreen/{tagName}",
+//                arguments = listOf(navArgument("tagName") { type = NavType.StringType })
+//            ) { backStackEntry ->
+//                val tagName = backStackEntry.arguments?.getString("tagName") ?: return@composable
+//                LocationTagImagesScreen(navController, tagName, repository, navViewModel.albumcode)
+//            }
+//        }
+//    }
+//}
+
 @Composable
 fun TravelPicNavigator() {
     val context = LocalContext.current
@@ -104,6 +159,8 @@ fun TravelPicNavigator() {
 
     val navController = rememberNavController()
     val navStoreOwner = rememberViewModelStoreOwner()
+    val repository = FirebaseAlbumRepository(table)
+
     CompositionLocalProvider(
         LocalNavGraphViewModelStoreOwner provides navStoreOwner
     ) {
@@ -131,10 +188,18 @@ fun TravelPicNavigator() {
                     albumCode = albumCode,
                     locationTag = locationTag,
                     navController = navController,
-                    repository = FirebaseAlbumRepository(table)
+                    repository = repository
                 )
+            }
+            composable(
+                "LocationTagImagesScreen/{tagName}",
+                arguments = listOf(navArgument("tagName") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val tagName = backStackEntry.arguments?.getString("tagName") ?: return@composable
+                LocationTagImagesScreen(navController, tagName, repository, navViewModel.albumcode)
             }
         }
     }
 }
+
 

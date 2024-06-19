@@ -1,10 +1,12 @@
 package com.example.travelpic.data
 
 import android.util.Log
+import androidx.compose.runtime.Composable
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
+import com.naver.maps.geometry.LatLng
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -114,4 +116,52 @@ class FirebaseAlbumRepository(private val table: DatabaseReference) {
         })
     }
 
+    fun parseLatLng(address: String): LatLng {
+        val parts = address.split(",")
+        return LatLng(parts[0].toDouble(), parts[1].toDouble())
+    }
+
+    fun getLocationTagsWithDetails(albumCode: String, callback: (Map<String, Triple<LatLng, String, String>>) -> Unit) {
+        table.child(albumCode).child("locationTags").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val tagsWithDetails = mutableMapOf<String, Triple<LatLng, String, String>>()
+                for (locationTagSnapshot in snapshot.children) {
+                    val address = locationTagSnapshot.child("address").value as? String
+                    val firstPicture = locationTagSnapshot.children.firstOrNull { it.key != "address" }?.child("imageUrl")?.getValue(String::class.java)
+                    val tagName = locationTagSnapshot.key ?: "Unknown"
+                    if (address != null && firstPicture != null) {
+                        val latLng = parseLatLng(address)
+                        tagsWithDetails[tagName] = Triple(latLng, firstPicture, tagName)
+                    }
+                }
+                callback(tagsWithDetails)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Handle error
+            }
+        })
+    }
+
+    fun getAllPicturesForLocationTag(albumCode: String, locationTag: String, callback: (List<String>) -> Unit) {
+        table.child(albumCode).child("locationTags").child(locationTag)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val urls = mutableListOf<String>()
+                    for (pictureSnapshot in snapshot.children) {
+                        if (pictureSnapshot.key != "address") {
+                            val url = pictureSnapshot.child("imageUrl").getValue(String::class.java)
+                            if (url != null) {
+                                urls.add(url)
+                            }
+                        }
+                    }
+                    callback(urls)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    // Handle error
+                }
+            })
+    }
 }
