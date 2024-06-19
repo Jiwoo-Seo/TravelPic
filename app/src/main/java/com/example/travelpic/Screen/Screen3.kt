@@ -45,6 +45,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,7 +73,9 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -92,13 +95,13 @@ fun Screen3(
     var showNoteDialog by remember { mutableStateOf(false) }
     var notes by remember { mutableStateOf("") }
     val storageRef = Firebase.storage.getReference("images/${navViewModel.albumcode}")
-    val dbref = Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/pictures")
+    var dbref = Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/pictures")
     // MutableState 리스트로 이미지 URL 저장
     var imageUrls by remember { mutableStateOf(listOf<String>()) }
     var imageNames by remember { mutableStateOf(listOf<String>()) }
 
     val context= LocalContext.current
-
+    val repository = FirebaseAlbumRepository(Firebase.database.getReference("AlbumList"))
 
     // 이미지 리스트 가져오기
 //    LaunchedEffect(Unit) {
@@ -125,6 +128,7 @@ fun Screen3(
 //        }
 //    }
     LaunchedEffect(Unit) {
+        dbref = Firebase.database.getReference("AlbumList/${navViewModel.albumcode}/pictures")
         dbref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if (dataSnapshot.exists()) {
@@ -216,7 +220,28 @@ fun Screen3(
                     Icon(imageVector = Icons.Filled.Home, contentDescription = null, tint = Color.White)
                 }
                 IconButton(onClick = {
+                    // 사진 삭제
+                    // 지금 접근 사진의 url : storageCurrentImageUrl
+                    val temp=currentIndex
+                    val code=navViewModel.albumcode
+                    val key=Firebase.database.getReference("AlbumList/$code/pictures")
+                        .child(imageNames[temp]).key
+                    // 마지막 인덱스이면 처음 인덱스로 옮겨주기
+                    if(temp==imageUrls.size-1){
+                        currentIndex=0
+                    }
+                    imageUrls = imageUrls.toMutableStateList().apply {
+                        removeAt(temp)
+                    }
+                    imageNames = imageNames.toMutableStateList().apply {
+                        removeAt(temp)
+                    }
 
+                    if (key != null) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            deleteImage(storageCurrentImageUrl, code, key, context, repository)
+                        }
+                    }
                 }) {
                     Icon(imageVector = Icons.Filled.Delete, contentDescription = null, tint = Color.Red)
                 }
@@ -372,5 +397,31 @@ fun saveImageToGallery(context: Context, bitmap: Bitmap) {
         if(it!=null)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
         Toast.makeText(context, "이미지가 갤러리에 저장되었습니다.", Toast.LENGTH_SHORT).show()
+    }
+}
+
+suspend fun deleteImage(
+    imageUrl: String,
+    albumCode: String,
+    imageKey: String,
+    context: android.content.Context,
+    repository: FirebaseAlbumRepository
+) {
+    val storageReference = Firebase.storage.reference
+    val imageReference = storageReference.storage.getReferenceFromUrl(imageUrl)
+
+    try {
+        // Delete the image from Firebase Storage
+        imageReference.delete().await()
+
+        // Remove the Picture object from Firebase Realtime Database
+        repository.removePictureFromAlbum(albumCode, imageKey, imageUrl)
+
+        Log.i("imagetag", "Image deleted successfully")
+        delay(1)
+
+    } catch (e: Exception) {
+        Log.e("Delete Error", "Failed to delete image", e)
+        delay(1)
     }
 }

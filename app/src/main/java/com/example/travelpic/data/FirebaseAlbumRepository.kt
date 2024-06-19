@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.naver.maps.geometry.LatLng
 import kotlinx.coroutines.channels.awaitClose
@@ -163,5 +164,57 @@ class FirebaseAlbumRepository(private val table: DatabaseReference) {
                     // Handle error
                 }
             })
+    }
+
+    fun removePictureFromAlbum(albumCode: String, imageKey: String, imageUrl: String) {
+        val pictureRef = table.child(albumCode).child("pictures").child(imageKey)
+        val pictureRef2 = table.child(albumCode).child("locationTags")
+
+        if(imageUrl!=null)
+            Log.i("DEBUG",imageUrl)
+
+        pictureRef.removeValue().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                Log.i("Repository", "Picture removed successfully")
+            } else {
+                Log.e("Repository", "Failed to remove picture", task.exception)
+            }
+        }
+
+        pictureRef2.addListenerForSingleValueEvent(object:ValueEventListener{
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                for (locationTagSnapshot in dataSnapshot.children) {
+                    locationTagSnapshot.ref.addListenerForSingleValueEvent(object:ValueEventListener{
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            for(locationTagSnapshot2 in snapshot.children){
+                                var flag=0
+                                if(locationTagSnapshot2.child("imageUrl").getValue().toString()==imageUrl){
+                                    flag=1
+                                }
+                                if(flag==1){
+                                    locationTagSnapshot2.ref.removeValue().addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            Log.i("Repository", "Picture removed successfully")
+                                        } else {
+                                            Log.e("Repository", "Failed to remove picture", task.exception)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            Log.e("Repository", "Cancelled to remove picture")
+                        }
+
+                    })
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                println("Database error")
+            }
+
+        })
     }
 }
