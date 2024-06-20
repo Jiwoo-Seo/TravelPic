@@ -52,11 +52,30 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
+fun checkUrlExists(url: String, key: String?, callback: (Boolean) -> Unit) {
+    val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(url)
+    storageRef.downloadUrl.addOnSuccessListener {
+        callback(true)
+    }.addOnFailureListener {
+        callback(false)
+    }
+}
+fun deleteInvalidUrl(hlTable: DatabaseReference, key: String?) {
+    key?.let {
+        hlTable.child(it).removeValue().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                Log.i("Firebase", "Invalid URL deleted successfully")
+            } else {
+                Log.e("Firebase", "Failed to delete invalid URL", task.exception)
+            }
+        }
+    }
+}
 @Composable
 fun Screen5(navController: NavController, albumViewModel: AlbumViewModel) {
     val navViewModel: navViewmodel = viewModel(viewModelStoreOwner = LocalNavGraphViewModelStoreOwner.current)
@@ -143,7 +162,13 @@ fun Screen5(navController: NavController, albumViewModel: AlbumViewModel) {
                         for (snapshot in dataSnapshot.children) {
                             val url = snapshot.getValue(String::class.java)
                             if(url!=hlName&&url!=hlDate){
-                                imageUrls += url.toString()
+                                checkUrlExists(url.toString(), snapshot.key) { exists ->
+                                    if (exists) {
+                                        imageUrls = imageUrls + url.toString()
+                                    } else {
+                                        deleteInvalidUrl(hlTable, snapshot.key)
+                                    }
+                                }
                             }
                         }
                         isLoaded = true
